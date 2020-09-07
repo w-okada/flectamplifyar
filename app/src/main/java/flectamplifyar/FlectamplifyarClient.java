@@ -19,7 +19,7 @@ import java.util.*;
 
 
 
-@com.amazonaws.mobileconnectors.apigateway.annotation.Service(endpoint = "https://dlwmi1mc51.execute-api.us-east-1.amazonaws.com/prod")
+@com.amazonaws.mobileconnectors.apigateway.annotation.Service(endpoint = "https://x27sud52va.execute-api.us-east-1.amazonaws.com/dev")
 public interface FlectamplifyarClient {
 
 

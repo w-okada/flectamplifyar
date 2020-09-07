@@ -75,8 +75,8 @@
         "Layers": [],
         "Timeout": "25",
         "Code": {
-          "S3Bucket": "amplify-flectamplifyar-prod-171121-deployment",
-          "S3Key": "amplify-builds/flectamplifyar4cb622d4-306b2b32622b55467679-build.zip"
+          "S3Bucket": "amplify-flectamplifyar-dev-172751-deployment",
+          "S3Key": "amplify-builds/flectamplifyar4cb622d4-496e464170776463636b-build.zip"
         }
       }
     },
