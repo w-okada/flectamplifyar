@@ -1,6 +1,10 @@
+import json
+
 def handler(event, context):
   print('received event:')
   print(event)
   return {
-    'message': 'Hello from your new Amplify Python lambda!'
+      'statusCode': 200,
+      'body': json.dumps(event)
   }
+
