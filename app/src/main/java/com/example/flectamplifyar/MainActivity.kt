@@ -17,15 +17,22 @@ import com.amplifyframework.core.Amplify
 import com.amplifyframework.storage.s3.AWSS3StoragePlugin
 import com.example.flectamplifyar.helper.*
 import com.example.flectamplifyar.helper.SnackbarHelper.showError
+import com.example.flectamplifyar.model.Stroke
+import com.example.flectamplifyar.model.StrokeProvider
 import com.example.flectamplifyar.rendering.BackgroundRenderer
 import com.example.flectamplifyar.rendering.DepthTexture
+import com.example.flectamplifyar.rendering.LineShaderRenderer
+import com.example.flectamplifyar.rendering.LineUtils
 import com.google.ar.core.*
 import com.google.ar.core.exceptions.*
 import kotlinx.android.synthetic.main.activity_main.*
 import java.io.File
 import java.io.IOException
+import java.util.HashMap
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
+import javax.vecmath.Vector2f
+import javax.vecmath.Vector3f
 
 class MainActivity : AppCompatActivity(), GLSurfaceView.Renderer {
 
@@ -37,6 +44,9 @@ class MainActivity : AppCompatActivity(), GLSurfaceView.Renderer {
 
     private var mScreenWidth  = 0.0f
     private var mScreenHeight = 0.0f
+
+    private var mAnchor: Anchor? = null
+    private val SEARCHING_PLANE_MESSAGE = "Searching for surfaces..."
 
     companion object {
         private val TAG: String = MainActivity::class.java.getSimpleName()
@@ -245,6 +255,8 @@ class MainActivity : AppCompatActivity(), GLSurfaceView.Renderer {
         try {
             DepthTexture .createOnGlThread()
             BackgroundRenderer.createOnGlThread(this, DepthTexture.getTextureId())
+            LineShaderRenderer.createOnGlThread(this)
+
 //            planeRenderer.createOnGlThread( /*context=*/this, "models/trigrid.png")
 //            pointCloudRenderer.createOnGlThread( /*context=*/this)
 //            Log.e("----","fin load all file0")
@@ -264,7 +276,6 @@ class MainActivity : AppCompatActivity(), GLSurfaceView.Renderer {
 //            virtualObject.setMaterialProperties(0.0f, 2.0f, 0.5f, 6.0f)
 //            Log.e("----","fin load all file4")
 
-//            mLineShaderRenderer.createOnGlThread(this)
 //            //プログラムの生成
 //            validProgram = makeProgram(this)
 //
@@ -333,12 +344,23 @@ class MainActivity : AppCompatActivity(), GLSurfaceView.Renderer {
             val camera = frame.camera
             val rotate = DisplayRotationHelper.getCameraSensorToDisplayRotation(session!!.cameraConfig.cameraId)
 
+
+            // Define Anchor
+            val trackables = session!!.getAllTrackables(Plane::class.java)
+            for(t in trackables){
+                if(mAnchor === null){
+                    mAnchor = session!!.createAnchor(camera.pose)
+                    mAnchor!!.pose.toMatrix(LineShaderRenderer.mModelMatrix, 0)
+                }
+            }
+
+
             if (frame.hasDisplayGeometryChanged() || calculateUVTransform) {
-//                // The UV Transform represents the transformation between screenspace in normalized units
-//                // and screenspace in units of pixels.  Having the size of each pixel is necessary in the
-//                // virtual object shader, to perform kernel-based blur effects.
-//                calculateUVTransform = false
-//                val transform: FloatArray = getTextureTransformMatrix(frame)
+                // The UV Transform represents the transformation between screenspace in normalized units
+                // and screenspace in units of pixels.  Having the size of each pixel is necessary in the
+                // virtual object shader, to perform kernel-based blur effects.
+                calculateUVTransform = false
+                val transform: FloatArray = getTextureTransformMatrix(frame)
 //                Log.e("-------------------","TextureTransformMatrix ${transform.contentToString()}")
 //                virtualObject.setUvTransformMatrix(transform)
 //                GLES.setUvTransformMatrix(transform)
@@ -361,34 +383,118 @@ class MainActivity : AppCompatActivity(), GLSurfaceView.Renderer {
                 return
             }
 
+
+            // Get projection&view matrix.
+            val projmtx = FloatArray(16)
+            val viewmtx = FloatArray(16)
+            camera.getProjectionMatrix(projmtx, 0, 0.1f, 100.0f)
+            camera.getViewMatrix(viewmtx, 0)
+
+            val colorCorrectionRgba = FloatArray(4)
+            frame.lightEstimate.getColorCorrection(colorCorrectionRgba, 0)
+
+            if (hasTrackingPlane()) {
+                SnackbarHelper.hide(this)
+            } else {
+                SnackbarHelper.showMessage(this, SEARCHING_PLANE_MESSAGE)
+            }
+
+            if(StrokeProvider.mStrokes.size>0){
+                LineShaderRenderer.draw(
+                    viewmtx, projmtx, mScreenWidth, mScreenHeight,
+                    AppSettings.nearClip, AppSettings.farClip
+                )
+            }
+
         } catch (t: Throwable) {
             Log.e(TAG, "Exception on the OpenGL thread", t)
         }
     }
 
 
+
+
+    private fun convertWorldCordPoint(touchPoint: Vector2f, frame: Frame, camera: Camera): Vector3f {
+        val projmtx = FloatArray(16)
+        camera.getProjectionMatrix(projmtx, 0, 0.1f, 100.0f)
+        val viewmtx = FloatArray(16)
+        camera.getViewMatrix(viewmtx, 0)
+        val newPoint = LineUtils.GetWorldCoords(touchPoint, mScreenWidth, mScreenHeight, projmtx, viewmtx)
+        return newPoint
+    }
+
+
+    private val mSharedStrokes: MutableMap<String, Stroke> = HashMap() // pair-partner's stroke
     private fun handleTap(frame: Frame, camera: Camera) {
         val tap = TapHelper.poll()
 //        Log.e("-----TAP:::", "tapinfo: ${tap.toString()}")
 
-//        if(tap !== null){
-//            val mLastTouch = Vector2f(tap.x, tap.y)
-//            //addPoint2f(mLastTouch, frame, camera)
-//            var point = convertWorldCordPoint(mLastTouch, frame, camera)
-//            if (mAnchor != null && mAnchor!!.trackingState == TrackingState.TRACKING) {
-//                point = LineUtils.TransformPointToPose(point, mAnchor!!.getPose());
-//                StrokeProvider.addNewEvent(tap, point)
-//            }
-//        }
-//
-//        mLineShaderRenderer.setColor(AppSettings.color)
-//        mLineShaderRenderer.mDrawDistance = AppSettings.strokeDrawDistance
-//        val distanceScale = 1.0f
-//        mLineShaderRenderer.setDistanceScale(distanceScale)
-//        mLineShaderRenderer.setLineWidth(0.33f)
-//        mLineShaderRenderer.clear()
-//        mLineShaderRenderer.updateStrokes(StrokeProvider.mStrokes, mSharedStrokes)
-//        mLineShaderRenderer.upload()
-//
+        if(tap !== null){
+            val mLastTouch = Vector2f(tap.x, tap.y)
+            //addPoint2f(mLastTouch, frame, camera)
+            var point = convertWorldCordPoint(mLastTouch, frame, camera)
+            if (mAnchor != null && mAnchor!!.trackingState == TrackingState.TRACKING) {
+                point = LineUtils.TransformPointToPose(point, mAnchor!!.getPose());
+                StrokeProvider.addNewEvent(tap, point)
+            }
+        }
+
+        if(StrokeProvider.mStrokes.size >0) {
+            LineShaderRenderer.setColor(AppSettings.color)
+            LineShaderRenderer.mDrawDistance = AppSettings.strokeDrawDistance
+            val distanceScale = 1.0f
+            LineShaderRenderer.setDistanceScale(distanceScale)
+            LineShaderRenderer.setLineWidth(0.33f)
+            LineShaderRenderer.clear()
+            LineShaderRenderer.updateStrokes(StrokeProvider.mStrokes, mSharedStrokes) // pair-partner's stroke
+            LineShaderRenderer.upload()
+        }
+    }
+
+
+
+    /**
+     * Returns a transformation matrix that when applied to screen space uvs makes them match
+     * correctly with the quad texture coords used to render the camera feed. It takes into account
+     * device orientation.
+     */
+    private fun getTextureTransformMatrix(frame: Frame): FloatArray {
+        val frameTransform = FloatArray(6)
+        val uvTransform = FloatArray(9)
+        // XY pairs of coordinates in NDC space that constitute the origin and points along the two
+        // principal axes.
+        val ndcBasis = floatArrayOf(0f, 0f, 1f, 0f, 0f, 1f)
+
+        // Temporarily store the transformed points into outputTransform.
+        frame.transformCoordinates2d(
+            Coordinates2d.OPENGL_NORMALIZED_DEVICE_COORDINATES,
+            ndcBasis,
+            Coordinates2d.TEXTURE_NORMALIZED,
+            frameTransform
+        )
+
+        // Convert the transformed points into an affine transform and transpose it.
+        val ndcOriginX = frameTransform[0]
+        val ndcOriginY = frameTransform[1]
+        uvTransform[0] = frameTransform[2] - ndcOriginX
+        uvTransform[1] = frameTransform[3] - ndcOriginY
+        uvTransform[2] = 0.0f
+        uvTransform[3] = frameTransform[4] - ndcOriginX
+        uvTransform[4] = frameTransform[5] - ndcOriginY
+        uvTransform[5] = 0.0f
+        uvTransform[6] = ndcOriginX
+        uvTransform[7] = ndcOriginY
+        uvTransform[8] = 1.0f
+        return uvTransform
+    }
+
+    /** Checks if we detected at least one plane.  */
+    private fun hasTrackingPlane(): Boolean {
+        for (plane in session!!.getAllTrackables(Plane::class.java)) {
+            if (plane.trackingState == TrackingState.TRACKING) {
+                return true
+            }
+        }
+        return false
     }
 }

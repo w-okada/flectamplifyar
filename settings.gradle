@@ -1,2 +1,3 @@
+include ':vecmath'
 include ':app'
 rootProject.name = "flectamplifyar"
