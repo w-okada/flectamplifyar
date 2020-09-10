@@ -258,19 +258,7 @@ class MainActivity : AppCompatActivity(), GLSurfaceView.Renderer {
 
 //            planeRenderer.createOnGlThread( /*context=*/this, "models/trigrid.png")
 //            pointCloudRenderer.createOnGlThread( /*context=*/this)
-//            Log.e("----","fin load all file0")
-//            virtualObject.createOnGlThread( /*context=*/this, "models/andy.obj", "models/andy.png")
-//            Log.e("----","fin load all file1")
-//
-//            virtualObject.setBlendMode(ObjectRenderer.BlendMode.AlphaBlending)
-//            Log.e("----","fin load all file2")
-//            virtualObject.setDepthTexture(
-//                depthTexture.getTextureId(), depthTexture.getWidth(), depthTexture.getHeight()
-//            )
 
-//            Log.e("----","fin load all file3")
-//            virtualObject.setMaterialProperties(0.0f, 2.0f, 0.5f, 6.0f)
-//            Log.e("----","fin load all file4")
 
 
             // GLES
@@ -295,7 +283,7 @@ class MainActivity : AppCompatActivity(), GLSurfaceView.Renderer {
             GLES20.glEnable(GLES20.GL_DEPTH_TEST)
 
             // カリングの有効化
-            GLES20.glEnable(GLES20.GL_CULL_FACE) //裏面を表示しないチェックを行う
+//            GLES20.glEnable(GLES20.GL_CULL_FACE) //裏面を表示しないチェックを行う
             GLES20.glFrontFace(GLES20.GL_CCW) //表面のvertexのindex番号はCCWで登録
             GLES20.glCullFace(GLES20.GL_BACK) //裏面は表示しない
 
@@ -362,8 +350,6 @@ class MainActivity : AppCompatActivity(), GLSurfaceView.Renderer {
                 // virtual object shader, to perform kernel-based blur effects.
                 calculateUVTransform = false
                 val transform: FloatArray = getTextureTransformMatrix(frame)
-//                Log.e("-------------------","TextureTransformMatrix ${transform.contentToString()}")
-//                virtualObject.setUvTransformMatrix(transform)
                 GLES.setUvTransformMatrix(transform)
 
             }
@@ -408,50 +394,46 @@ class MainActivity : AppCompatActivity(), GLSurfaceView.Renderer {
             }
 
 
-//
-//            for(l in StrokeProvider.mStrokes){
-//                Log.e("aaaa", "stroke!!!!!!!!!!!!!!!!"+l.getPoints()[0])
-//
-//
-//
-//                //変換マトリックス
-//                val mMatrix = FloatArray(16) //モデル変換マトリックス
-//                GLES.useProgram()
-//                val DummyFloat = FloatArray(1)
-//                val DummyBuffer = BufferUtil.makeFloatBuffer(DummyFloat)
-//                //シェーダのattribute属性の変数に値を設定していないと暴走するのでここでセットしておく。この位置でないといけない
-//                GLES20.glVertexAttribPointer(GLES.positionHandle, 3, GLES20.GL_FLOAT, false, 0, DummyBuffer)
-//                GLES20.glVertexAttribPointer(GLES.normalHandle, 3, GLES20.GL_FLOAT, false, 0, DummyBuffer)
-//                GLES20.glVertexAttribPointer(GLES.texcoordHandle, 2, GLES20.GL_FLOAT, false, 0, DummyBuffer)
-//
-//                ShaderUtil.checkGLError("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAa", "before set texture0")
-//
-//                //無変換の記述はここ
-//                GLES.disableShading(); //シェーディング機能は使わない
-//                GLES.enableTexture();
-//                GLES.setPMatrix(projmtx);
-//
-//                GLES.setCMatrix(viewmtx);
-//
-//                //大きい地球の最前面にHelloを表示
-//                Matrix.setIdentityM(mMatrix, 0);
-//
-//                val aMatrix = FloatArray(16) //モデル変換マトリックス
-////                Matrix.setIdentityM(aMatrix, 0);
-//                mAnchor!!.pose.toMatrix(aMatrix, 0)
-//
-//                Matrix.translateM(mMatrix, 0, l.getPoints()[0].x, l.getPoints()[0].y, l.getPoints()[0].z);
-////                Matrix.translateM(mMatrix, 0, 0.1f, 0f, 0f);
-//                Matrix.scaleM(mMatrix, 0, 0.1f, 0.1f , 0.1f);
-//                ShaderUtil.checkGLError("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAa", "before set texture1")
-//
-//                GLES.updateMatrix(mMatrix, aMatrix);//現在の変換行列をシェーダに指定2
-//                Log.e("AAAAAAAAa","AAAAAAAAA ${aMatrix.contentToString()}")
-//                Hello.setTexture();
-//                TexRectangular.setup()
-//                TexRectangular.draw(0.5f, .1f, 1.0f, 0.5f, 0.0f);
-//
-//            }
+
+            for(l in StrokeProvider.mStrokes){
+
+                //変換マトリックス
+                val mMatrix = FloatArray(16) //モデル変換マトリックス
+                GLES.useProgram()
+                val DummyFloat = FloatArray(1)
+                val DummyBuffer = BufferUtil.makeFloatBuffer(DummyFloat)
+                //シェーダのattribute属性の変数に値を設定していないと暴走するのでここでセットしておく。この位置でないといけない
+                GLES20.glVertexAttribPointer(GLES.positionHandle, 3, GLES20.GL_FLOAT, false, 0, DummyBuffer)
+                GLES20.glVertexAttribPointer(GLES.normalHandle, 3, GLES20.GL_FLOAT, false, 0, DummyBuffer)
+                GLES20.glVertexAttribPointer(GLES.texcoordHandle, 2, GLES20.GL_FLOAT, false, 0, DummyBuffer)
+
+                ShaderUtil.checkGLError("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAa", "before set texture0")
+
+                //無変換の記述はここ
+                GLES.disableShading(); //シェーディング機能は使わない
+                GLES.enableTexture();
+                GLES.setPMatrix(projmtx);
+
+                GLES.setCMatrix(viewmtx);
+
+                //大きい地球の最前面にHelloを表示
+                Matrix.setIdentityM(mMatrix, 0);
+
+                val aMatrix = FloatArray(16) //モデル変換マトリックス
+//                Matrix.setIdentityM(aMatrix, 0);
+                mAnchor!!.pose.toMatrix(aMatrix, 0)
+
+                Matrix.translateM(mMatrix, 0, l.getPoints()[0].x, l.getPoints()[0].y, l.getPoints()[0].z);
+//                Matrix.translateM(mMatrix, 0, 0.1f, 0f, 0f);
+                Matrix.scaleM(mMatrix, 0, 0.1f, 0.1f , 0.1f);
+                ShaderUtil.checkGLError("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAa", "before set texture1")
+
+                GLES.updateMatrix(mMatrix, aMatrix);//現在の変換行列をシェーダに指定2
+                Hello.setTexture();
+                TexRectangular.setup()
+                TexRectangular.draw(0.5f, .1f, 1.0f, 0.5f, 0.0f);
+
+            }
 
 
 

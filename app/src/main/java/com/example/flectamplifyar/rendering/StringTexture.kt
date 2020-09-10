@@ -77,10 +77,10 @@ class StringTexture {
 
     fun setTexture() {
         // テクスチャの指定
-        Log.e("texture:", "TextureUnitNumber"+GLES20.GL_TEXTURE0 + TextureUnitNumber)
+//        Log.e("texture:", "TextureUnitNumber"+GLES20.GL_TEXTURE0 + TextureUnitNumber)
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0)
 //        GLES20.glActiveTexture(GLES20.GL_TEXTURE0 + TextureUnitNumber)
-        Log.e("texture:", "TextureId"+TextureId)
+//        Log.e("texture:", "TextureId"+TextureId)
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, TextureId)
         GLES20.glUniform1i(GLES.textureHandle, TextureUnitNumber) //テクスチャユニット番号を指定する
         ShaderUtil.checkGLError("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAa", "set Texture4")
