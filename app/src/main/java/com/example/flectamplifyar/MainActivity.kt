@@ -5,10 +5,10 @@ import android.graphics.Color
 import android.opengl.GLES20
 import android.opengl.GLSurfaceView
 import android.opengl.Matrix
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import com.amplifyframework.AmplifyException
 import com.amplifyframework.auth.cognito.AWSCognitoAuthPlugin
 import com.amplifyframework.core.Amplify
@@ -22,11 +22,14 @@ import com.google.ar.core.exceptions.*
 import kotlinx.android.synthetic.main.activity_main.*
 import java.io.File
 import java.io.IOException
-import java.util.HashMap
+import java.nio.FloatBuffer
+import java.nio.ShortBuffer
+import java.util.*
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 import javax.vecmath.Vector2f
 import javax.vecmath.Vector3f
+
 
 class MainActivity : AppCompatActivity(), GLSurfaceView.Renderer {
 
@@ -122,7 +125,8 @@ class MainActivity : AppCompatActivity(), GLSurfaceView.Renderer {
                         installRequested = true
                         return
                     }
-                    ArCoreApk.InstallStatus.INSTALLED -> { }
+                    ArCoreApk.InstallStatus.INSTALLED -> {
+                    }
                     else-> { }
                 }
 
@@ -134,6 +138,8 @@ class MainActivity : AppCompatActivity(), GLSurfaceView.Renderer {
 
                 // Create the session.
                 session = Session(this)
+//                session = Session(this, EnumSet.of(Session.Feature.FRONT_CAMERA)) // Faceをするときに使う。。
+
                 val config = session!!.getConfig()
                 config.depthMode = if(session!!.isDepthModeSupported(Config.DepthMode.AUTOMATIC)){
                     Config.DepthMode.AUTOMATIC
@@ -229,10 +235,18 @@ class MainActivity : AppCompatActivity(), GLSurfaceView.Renderer {
         FullScreenHelper.setFullScreenOnWindowFocusChanged(this, hasFocus)
     }
 
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, results: IntArray) {
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<String>,
+        results: IntArray
+    ) {
         super.onRequestPermissionsResult(requestCode, permissions, results)
         if (!CameraPermissionHelper.hasCameraPermission(this)) {
-            Toast.makeText(this, "Camera permission is needed to run this application", Toast.LENGTH_LONG).show()
+            Toast.makeText(
+                this,
+                "Camera permission is needed to run this application",
+                Toast.LENGTH_LONG
+            ).show()
             if (!CameraPermissionHelper.shouldShowRequestPermissionRationale(this)) {
                 CameraPermissionHelper.launchPermissionSettings(this)
             }
@@ -241,8 +255,6 @@ class MainActivity : AppCompatActivity(), GLSurfaceView.Renderer {
     }
 
 
-    lateinit var hello:StringTexture
-    lateinit var tri:TrianglTexture
 
     override fun onSurfaceCreated(gl: GL10, config: EGLConfig) {
         GLES20.glClearColor(0.1f, 0.1f, 0.1f, 1.0f)
@@ -263,12 +275,12 @@ class MainActivity : AppCompatActivity(), GLSurfaceView.Renderer {
             GLES.setDepthTexture(
                 DepthTexture.getTextureId(), DepthTexture.getWidth(), DepthTexture.getHeight()
             )
-            hello = StringTexture(
+            StringTexture.setup(
                 "FLECT", 20f,
                 Color.parseColor("#FFFFFFFF"),
                 Color.parseColor("#55FF0000")
             )
-            tri = TrianglTexture(
+            TrianglTexture.setup(
                 "aaaa", 20f,
                 Color.parseColor("#FFFFFFFF"),
                 Color.parseColor("#55FF0000")
@@ -309,6 +321,8 @@ class MainActivity : AppCompatActivity(), GLSurfaceView.Renderer {
 //            GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE)
 
 
+
+
         } catch (e: IOException) {
             Log.e(TAG, "Failed to read an asset file", e)
         }
@@ -336,7 +350,6 @@ class MainActivity : AppCompatActivity(), GLSurfaceView.Renderer {
             val frame = session!!.update()
             val camera = frame.camera
             val rotate = DisplayRotationHelper.getCameraSensorToDisplayRotation(session!!.cameraConfig.cameraId)
-
 
             // Define Anchor
             val trackables = session!!.getAllTrackables(Plane::class.java)
@@ -398,7 +411,6 @@ class MainActivity : AppCompatActivity(), GLSurfaceView.Renderer {
             }
 
 
-
             for(l in StrokeProvider.mStrokes){
 
                 //変換マトリックス
@@ -407,9 +419,30 @@ class MainActivity : AppCompatActivity(), GLSurfaceView.Renderer {
                 val dummyFloat = FloatArray(1)
                 val dummyBuffer = BufferUtil.makeFloatBuffer(dummyFloat)
                 //シェーダのattribute属性の変数に値を設定していないと暴走するのでここでセットしておく。この位置でないといけない
-                GLES20.glVertexAttribPointer(GLES.positionHandle, 3, GLES20.GL_FLOAT, false, 0, dummyBuffer)
-                GLES20.glVertexAttribPointer(GLES.normalHandle, 3, GLES20.GL_FLOAT, false, 0, dummyBuffer)
-                GLES20.glVertexAttribPointer(GLES.texcoordHandle, 2, GLES20.GL_FLOAT, false, 0, dummyBuffer)
+                GLES20.glVertexAttribPointer(
+                    GLES.positionHandle,
+                    3,
+                    GLES20.GL_FLOAT,
+                    false,
+                    0,
+                    dummyBuffer
+                )
+                GLES20.glVertexAttribPointer(
+                    GLES.normalHandle,
+                    3,
+                    GLES20.GL_FLOAT,
+                    false,
+                    0,
+                    dummyBuffer
+                )
+                GLES20.glVertexAttribPointer(
+                    GLES.texcoordHandle,
+                    2,
+                    GLES20.GL_FLOAT,
+                    false,
+                    0,
+                    dummyBuffer
+                )
 
                 ShaderUtil.checkGLError("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAa", "before set texture0")
 
@@ -427,17 +460,20 @@ class MainActivity : AppCompatActivity(), GLSurfaceView.Renderer {
 //                Matrix.setIdentityM(aMatrix, 0)
                 mAnchor!!.pose.toMatrix(aMatrix, 0)
 
-                Matrix.translateM(mMatrix, 0, l.getPoints()[0].x, l.getPoints()[0].y, l.getPoints()[0].z)
+                Matrix.translateM(
+                    mMatrix,
+                    0,
+                    l.getPoints()[0].x,
+                    l.getPoints()[0].y,
+                    l.getPoints()[0].z
+                )
 //                Matrix.translateM(mMatrix, 0, 0.1f, 0f, 0f)
-                Matrix.scaleM(mMatrix, 0, 0.1f, 0.1f , 0.1f)
+                Matrix.scaleM(mMatrix, 0, 0.1f, 0.1f, 0.1f)
                 ShaderUtil.checkGLError("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAa", "before set texture1")
 
                 GLES.updateMatrix(mMatrix, aMatrix)
-                hello.setTexture()
-                hello.setup()
-                hello.draw(0.5f, .1f, 1.0f, 0.5f, 0.0f)
+                StringTexture.draw(0.5f, .1f, 1.0f, 0.5f, 0.0f)
             }
-
 
 //            if(StrokeProvider.mStrokes.size > 0){
             if(true){
@@ -449,6 +485,8 @@ class MainActivity : AppCompatActivity(), GLSurfaceView.Renderer {
                 GLES20.glVertexAttribPointer(GLES.positionHandle, 3, GLES20.GL_FLOAT, false, 0, dummyBuffer)
                 GLES20.glVertexAttribPointer(GLES.normalHandle, 3, GLES20.GL_FLOAT, false, 0, dummyBuffer)
                 GLES20.glVertexAttribPointer(GLES.texcoordHandle, 2, GLES20.GL_FLOAT, false, 0, dummyBuffer)
+
+
 
                 GLES.disableShading()
                 GLES.enableTexture()
@@ -464,12 +502,8 @@ class MainActivity : AppCompatActivity(), GLSurfaceView.Renderer {
                 Matrix.setIdentityM(mMatrix, 0)
                 Matrix.translateM(mMatrix, 0, 0.5f, 0.1f, -0.3f)
                 GLES.updateMatrix(mMatrix, aMatrix)
-                tri.setTexture()
-                tri.setup()
-                tri.draw(0.5f, .1f, 1.0f, 0.5f, 0.0f)
+                TrianglTexture.draw(0.5f, .1f, 1.0f, 0.5f, 0.0f)
             }
-
-
 
         } catch (t: Throwable) {
             Log.e(TAG, "Exception on the OpenGL thread", t)

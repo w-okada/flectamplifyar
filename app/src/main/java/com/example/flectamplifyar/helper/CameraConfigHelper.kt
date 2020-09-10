@@ -33,6 +33,7 @@ object CameraConfigHelper{
                 getCameraConfigWithSelectedResolution(cameraConfigs,  ImageResolution.MEDIUM_RESOLUTION)
             cpuHighResolutionCameraConfig =
                 getCameraConfigWithSelectedResolution(cameraConfigs,  ImageResolution.HIGH_RESOLUTION)
+
             cpuResolution = ImageResolution.HIGH_RESOLUTION
         }
     }
@@ -51,11 +52,10 @@ object CameraConfigHelper{
         sort(cameraConfigsByResolution) { p1: CameraConfig, p2: CameraConfig ->
             Integer.compare(p1.imageSize.height, p2.imageSize.height)
         }
-        var cameraConfig = cameraConfigsByResolution[0]
-        when (resolution) {
-            ImageResolution.LOW_RESOLUTION    -> cameraConfig = cameraConfigsByResolution[0]
-            ImageResolution.MEDIUM_RESOLUTION -> cameraConfig = cameraConfigsByResolution[1]
-            ImageResolution.HIGH_RESOLUTION   -> cameraConfig = cameraConfigsByResolution[2]
+        val cameraConfig = when (resolution) {
+            ImageResolution.LOW_RESOLUTION    -> cameraConfigsByResolution[0]
+            ImageResolution.MEDIUM_RESOLUTION -> if(cameraConfigsByResolution.size>=2) cameraConfigsByResolution[1] else cameraConfigsByResolution[0]
+            ImageResolution.HIGH_RESOLUTION   -> if(cameraConfigsByResolution.size>=3) cameraConfigsByResolution[2] else cameraConfigsByResolution[0]
         }
         return cameraConfig
     }

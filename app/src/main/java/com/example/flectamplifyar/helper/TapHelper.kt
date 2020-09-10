@@ -1,6 +1,7 @@
 package com.example.flectamplifyar.helper
 
 import android.content.Context
+import android.util.Log
 import android.view.GestureDetector
 import android.view.GestureDetector.SimpleOnGestureListener
 import android.view.MotionEvent
@@ -33,6 +34,8 @@ object TapHelper: View.OnTouchListener{
     }
 
     override fun onTouch(view: View, motionEvent: MotionEvent): Boolean {
+
+        Log.e("0000000","Clicked")
         queuedSingleTaps.offer(motionEvent)
         return true
     }

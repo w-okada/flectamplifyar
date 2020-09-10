@@ -11,17 +11,13 @@ import javax.microedition.khronos.opengles.GL10
 /**
  * Created by Tommy on 2015/07/15.
  */
-class StringTexture {
+object StringTexture {
     private var TextureId = -1
     private var TextureUnitNumber = 0
 
-    internal constructor(text: String, textSize: Float, txtcolor: Int, bkcolor: Int, textureidnumber: Int) {
-        TextureUnitNumber = textureidnumber
+    fun setup(text: String, textSize: Float, txtcolor: Int, bkcolor: Int) {
         makeStringTexture(text, textSize, txtcolor, bkcolor)
-    }
-
-    internal constructor(text: String, textSize: Float, txtcolor: Int, bkcolor: Int) {
-        makeStringTexture(text, textSize, txtcolor, bkcolor)
+        setRectangular(1f, 1f)
     }
 
     fun makeStringTexture(text: String, textSize: Float, txtcolor: Int, bkcolor: Int) {
@@ -77,17 +73,6 @@ class StringTexture {
 //        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0)
     }
 
-    fun setTexture() {
-        // テクスチャの指定
-//        Log.e("texture:", "TextureUnitNumber"+GLES20.GL_TEXTURE0 + TextureUnitNumber)
-        GLES20.glActiveTexture(GLES20.GL_TEXTURE0)
-//        GLES20.glActiveTexture(GLES20.GL_TEXTURE0 + TextureUnitNumber)
-//        Log.e("texture:", "TextureId"+TextureId)
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, TextureId)
-        GLES20.glUniform1i(GLES.textureHandle, TextureUnitNumber) //テクスチャユニット番号を指定する
-        ShaderUtil.checkGLError("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAa", "set Texture4")
-    }
-
 
     //bufferの定義
     private var vertexBuffer: FloatBuffer? = null
@@ -115,13 +100,6 @@ class StringTexture {
         0f, 0f,  //左上 0
     )
 
-
-    fun setup(){
-        setRectangular(1f, 1f)
-    }
-    fun setup(width: Float, height: Float) {
-        setRectangular(width, height)
-    }
 
     fun setRectangular(width: Float, height: Float) {
         val top = height * .5f
@@ -161,6 +139,12 @@ class StringTexture {
         //鏡面反射
         GLES20.glUniform4f(GLES.materialSpecularHandle, 1f, 1f, 1f, a)
         GLES20.glUniform1f(GLES.materialShininessHandle, shininess)
+
+        GLES20.glActiveTexture(GLES20.GL_TEXTURE0)
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, TextureId)
+        GLES20.glUniform1i(GLES.textureHandle, TextureUnitNumber) //テクスチャユニット番号を指定する
+        ShaderUtil.checkGLError("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAa", "set Texture4")
+
 
         // For occlusion
         // Attach the depth texture.
