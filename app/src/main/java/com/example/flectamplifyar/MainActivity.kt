@@ -4,6 +4,7 @@ import android.content.Intent
 import android.graphics.Color
 import android.opengl.GLES20
 import android.opengl.GLSurfaceView
+import android.opengl.Matrix
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
@@ -19,10 +20,7 @@ import com.example.flectamplifyar.helper.*
 import com.example.flectamplifyar.helper.SnackbarHelper.showError
 import com.example.flectamplifyar.model.Stroke
 import com.example.flectamplifyar.model.StrokeProvider
-import com.example.flectamplifyar.rendering.BackgroundRenderer
-import com.example.flectamplifyar.rendering.DepthTexture
-import com.example.flectamplifyar.rendering.LineShaderRenderer
-import com.example.flectamplifyar.rendering.LineUtils
+import com.example.flectamplifyar.rendering.*
 import com.google.ar.core.*
 import com.google.ar.core.exceptions.*
 import kotlinx.android.synthetic.main.activity_main.*
@@ -247,6 +245,7 @@ class MainActivity : AppCompatActivity(), GLSurfaceView.Renderer {
     }
 
 
+    lateinit var Hello:StringTexture
 
     override fun onSurfaceCreated(gl: GL10, config: EGLConfig) {
         GLES20.glClearColor(0.1f, 0.1f, 0.1f, 1.0f)
@@ -269,15 +268,22 @@ class MainActivity : AppCompatActivity(), GLSurfaceView.Renderer {
 //                depthTexture.getTextureId(), depthTexture.getWidth(), depthTexture.getHeight()
 //            )
 
-//            GLES.setDepthTexture(
-//                depthTexture.getTextureId(), depthTexture.getWidth(), depthTexture.getHeight()
-//            )
 //            Log.e("----","fin load all file3")
 //            virtualObject.setMaterialProperties(0.0f, 2.0f, 0.5f, 6.0f)
 //            Log.e("----","fin load all file4")
 
-//            //プログラムの生成
-//            validProgram = makeProgram(this)
+
+            // GLES
+            GLES.makeProgram(this)
+            GLES.setDepthTexture(
+                DepthTexture.getTextureId(), DepthTexture.getWidth(), DepthTexture.getHeight()
+            )
+            Hello = StringTexture(
+                "FLECT", 20f,
+                Color.parseColor("#FFFFFFFF"),
+                Color.parseColor("#55FF0000")
+            )
+
 //
 //
 //            //頂点配列の有効化
@@ -288,12 +294,10 @@ class MainActivity : AppCompatActivity(), GLSurfaceView.Renderer {
             //デプスバッファの有効化
             GLES20.glEnable(GLES20.GL_DEPTH_TEST)
 
-//            // カリングの有効化
-            //GLES20.glEnable(GLES20.GL_CULL_FACE) //裏面を表示しないチェックを行う
-
-            // 裏面を描画しない
+            // カリングの有効化
+            GLES20.glEnable(GLES20.GL_CULL_FACE) //裏面を表示しないチェックを行う
             GLES20.glFrontFace(GLES20.GL_CCW) //表面のvertexのindex番号はCCWで登録
-            //GLES20.glCullFace(GLES20.GL_BACK) //裏面は表示しない
+            GLES20.glCullFace(GLES20.GL_BACK) //裏面は表示しない
 
 
 //            //光源色の指定 (r, g, b,a)
@@ -309,12 +313,9 @@ class MainActivity : AppCompatActivity(), GLSurfaceView.Renderer {
 
             // 背景とのブレンド方法を設定します。
             GLES20.glEnable(GLES20.GL_BLEND)
-//            ShaderUtil.checkGLError("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAa", "after alpha123 - 2")
             GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA) // 単純なアルファブレンド
+//            GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE)
 
-//            Hello = StringTexture(
-//                "明後日の方向", 10f, Color.WHITE, Color.parseColor("#000F00C0")
-//            )
 
         } catch (e: IOException) {
             Log.e(TAG, "Failed to read an asset file", e)
@@ -363,7 +364,7 @@ class MainActivity : AppCompatActivity(), GLSurfaceView.Renderer {
                 val transform: FloatArray = getTextureTransformMatrix(frame)
 //                Log.e("-------------------","TextureTransformMatrix ${transform.contentToString()}")
 //                virtualObject.setUvTransformMatrix(transform)
-//                GLES.setUvTransformMatrix(transform)
+                GLES.setUvTransformMatrix(transform)
 
             }
 
@@ -405,6 +406,54 @@ class MainActivity : AppCompatActivity(), GLSurfaceView.Renderer {
                     AppSettings.nearClip, AppSettings.farClip
                 )
             }
+
+
+//
+//            for(l in StrokeProvider.mStrokes){
+//                Log.e("aaaa", "stroke!!!!!!!!!!!!!!!!"+l.getPoints()[0])
+//
+//
+//
+//                //変換マトリックス
+//                val mMatrix = FloatArray(16) //モデル変換マトリックス
+//                GLES.useProgram()
+//                val DummyFloat = FloatArray(1)
+//                val DummyBuffer = BufferUtil.makeFloatBuffer(DummyFloat)
+//                //シェーダのattribute属性の変数に値を設定していないと暴走するのでここでセットしておく。この位置でないといけない
+//                GLES20.glVertexAttribPointer(GLES.positionHandle, 3, GLES20.GL_FLOAT, false, 0, DummyBuffer)
+//                GLES20.glVertexAttribPointer(GLES.normalHandle, 3, GLES20.GL_FLOAT, false, 0, DummyBuffer)
+//                GLES20.glVertexAttribPointer(GLES.texcoordHandle, 2, GLES20.GL_FLOAT, false, 0, DummyBuffer)
+//
+//                ShaderUtil.checkGLError("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAa", "before set texture0")
+//
+//                //無変換の記述はここ
+//                GLES.disableShading(); //シェーディング機能は使わない
+//                GLES.enableTexture();
+//                GLES.setPMatrix(projmtx);
+//
+//                GLES.setCMatrix(viewmtx);
+//
+//                //大きい地球の最前面にHelloを表示
+//                Matrix.setIdentityM(mMatrix, 0);
+//
+//                val aMatrix = FloatArray(16) //モデル変換マトリックス
+////                Matrix.setIdentityM(aMatrix, 0);
+//                mAnchor!!.pose.toMatrix(aMatrix, 0)
+//
+//                Matrix.translateM(mMatrix, 0, l.getPoints()[0].x, l.getPoints()[0].y, l.getPoints()[0].z);
+////                Matrix.translateM(mMatrix, 0, 0.1f, 0f, 0f);
+//                Matrix.scaleM(mMatrix, 0, 0.1f, 0.1f , 0.1f);
+//                ShaderUtil.checkGLError("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAa", "before set texture1")
+//
+//                GLES.updateMatrix(mMatrix, aMatrix);//現在の変換行列をシェーダに指定2
+//                Log.e("AAAAAAAAa","AAAAAAAAA ${aMatrix.contentToString()}")
+//                Hello.setTexture();
+//                TexRectangular.setup()
+//                TexRectangular.draw(0.5f, .1f, 1.0f, 0.5f, 0.0f);
+//
+//            }
+
+
 
         } catch (t: Throwable) {
             Log.e(TAG, "Exception on the OpenGL thread", t)

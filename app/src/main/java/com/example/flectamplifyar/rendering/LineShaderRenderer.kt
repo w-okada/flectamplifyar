@@ -2,7 +2,7 @@ package com.example.flectamplifyar.rendering
 
 
 import android.content.Context
-import android.graphics.BitmapFactory
+import android.graphics.*
 import android.opengl.GLES20
 import android.opengl.GLUtils
 import android.opengl.Matrix
@@ -71,10 +71,10 @@ object LineShaderRenderer {
     private var mProgramName = 0
     private var mLineWidth = 0f
     private var mColor: Vector3f? = null
-    open var bNeedsUpdate = AtomicBoolean()
+    var bNeedsUpdate = AtomicBoolean()
     private var mLineDepthScale = 1.0f
-    open var mDrawDistance = 0f
-    open var mNumPoints = 0
+    var mDrawDistance = 0f
+    var mNumPoints = 0
 
     /**
      * Allocates and initializes OpenGL resources needed by the Line renderer.  Must be
@@ -84,7 +84,7 @@ object LineShaderRenderer {
      * @param context Needed to access shader source.
      */
     @Throws(IOException::class)
-    open fun createOnGlThread(context: Context) {
+    fun createOnGlThread(context: Context) {
         ShaderUtil.checkGLError(TAG, "before create")
         val buffers = IntArray(1)
         GLES20.glGenBuffers(1, buffers, 0)
@@ -134,9 +134,12 @@ object LineShaderRenderer {
         ShaderUtil.checkGLError(TAG, "program  params")
 
 
+
+
         // Read the line texture.
         val endCapTextureBitmap = BitmapFactory.decodeStream(context.assets.open("linecap.png"))
-
+        GLES20.glGenTextures(1, textures, 0)
+        Log.e("-------------------","LINE TEXTURE ID = ${textures[0]}")
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textures[0])
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR_MIPMAP_LINEAR)
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR)
@@ -150,20 +153,20 @@ object LineShaderRenderer {
         mColor = Vector3f(1f, 1f, 1f)
     }
 
-    open fun clearGL() {
+    fun clearGL() {
         GLES20.glDeleteShader(mProgramName)
         GLES20.glDeleteBuffers(1, intArrayOf(mVbo), 0)
     }
 
-    open fun setLineWidth(width: Float) {
+    fun setLineWidth(width: Float) {
         mLineWidth = width
     }
 
-    open fun setColor(color: Vector3f?) {
+    fun setColor(color: Vector3f?) {
         mColor = Vector3f(color)
     }
 
-    open fun setDistanceScale(distanceScale: Float) {
+    fun setDistanceScale(distanceScale: Float) {
         mLineDepthScale = distanceScale
     }
 
@@ -224,8 +227,6 @@ object LineShaderRenderer {
     private fun addLine(line: Stroke?, offset: Int): Int {
 
         if (line == null || line.size() < 2){
-            Log.e("-----", "addLine000 ${line}")
-            Log.e("-----", "addLine000 ${line?.size()}")
             return offset
         }
         val lineSize: Int = line.size()
@@ -233,9 +234,7 @@ object LineShaderRenderer {
         val mLineWidthMax = mLineWidth
         var length = 0f
         val totalLength: Float
-        Log.e("---------","addLine1: offset:${offset}")
         var ii = offset
-        Log.e("---------","addLine2: offset_ii:${ii}")
         totalLength = if (line.localLine) {
             line.totalLength
         } else {
@@ -271,7 +270,6 @@ object LineShaderRenderer {
                 setMemory(ii++, current, previous, next, mLineWidth, -1f, length, totalLength)
             }
         }
-        Log.e("---------","addLine3: offset_ii:${ii}")
 
         return ii
     }
@@ -299,7 +297,7 @@ object LineShaderRenderer {
     /**
      * Sets the bNeedsUpdate to true.
      */
-    open fun clear() {
+    fun clear() {
         bNeedsUpdate.set(true)
     }
 
@@ -307,7 +305,7 @@ object LineShaderRenderer {
      * This takes the float[] and creates FloatBuffers, Binds the VBO, and upload the Attributes to
      * correct locations with the correct offsets so the Vertex and Fragment shader can render the lines
      */
-    open fun upload() {
+    fun upload() {
         bNeedsUpdate.set(false)
         val current = toFloatBuffer(mPositions)
         val next = toFloatBuffer(mNext)
@@ -349,7 +347,7 @@ object LineShaderRenderer {
      * binds and uploads the shader uniforms, calls our single DrawArray call, and finally disables
      * and unbinds the shader attributes and VBO.
      */
-    open fun draw(cameraView: FloatArray?, cameraPerspective: FloatArray?, screenWidth: Float,
+    fun draw(cameraView: FloatArray?, cameraPerspective: FloatArray?, screenWidth: Float,
         screenHeight: Float, nearClip: Float, farClip: Float) {
 
         Matrix.multiplyMM(mModelViewMatrix, 0, cameraView, 0, mModelMatrix, 0)
