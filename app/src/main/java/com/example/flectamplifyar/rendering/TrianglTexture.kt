@@ -132,9 +132,9 @@ class TrianglTexture {
         //頂点座標
         val vertexs = floatArrayOf(
             left, top, 0f,  //左上 0
-            right, top, 0f,  //右上 1
-            left, bottom, 0f,  //左下 2
-            right, bottom, 0f, //右下 3
+            right, top, -0.9f,  //右上 1
+            left, bottom, -0.9f,  //左下 2
+            right, bottom, -0.5f, //右下 3
         )
         vertexBuffer = BufferUtil.makeFloatBuffer(vertexs)
         indexBuffer = BufferUtil.makeByteBuffer(indexs)
@@ -184,7 +184,7 @@ class TrianglTexture {
 
         GLES20.glDrawElements(
             GLES20.GL_TRIANGLE_STRIP,
-            4, GLES20.GL_UNSIGNED_BYTE, indexBuffer
+            3, GLES20.GL_UNSIGNED_BYTE, indexBuffer
         )
         GLES20.glDisableVertexAttribArray(GLES.texcoordHandle)
         GLES20.glDisableVertexAttribArray(GLES.positionHandle)

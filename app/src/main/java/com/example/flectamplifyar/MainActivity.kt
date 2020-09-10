@@ -441,7 +441,6 @@ class MainActivity : AppCompatActivity(), GLSurfaceView.Renderer {
 
 //            if(StrokeProvider.mStrokes.size > 0){
             if(true){
-                Log.e("-----------------------","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAaa")
                 GLES.useProgram()
 
                 val dummyFloat = FloatArray(1)
