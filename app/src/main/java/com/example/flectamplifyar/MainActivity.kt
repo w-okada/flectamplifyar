@@ -242,6 +242,7 @@ class MainActivity : AppCompatActivity(), GLSurfaceView.Renderer {
 
 
     lateinit var hello:StringTexture
+    lateinit var tri:TrianglTexture
 
     override fun onSurfaceCreated(gl: GL10, config: EGLConfig) {
         GLES20.glClearColor(0.1f, 0.1f, 0.1f, 1.0f)
@@ -267,6 +268,13 @@ class MainActivity : AppCompatActivity(), GLSurfaceView.Renderer {
                 Color.parseColor("#FFFFFFFF"),
                 Color.parseColor("#55FF0000")
             )
+            tri = TrianglTexture(
+                "aaaa", 20f,
+                Color.parseColor("#FFFFFFFF"),
+                Color.parseColor("#55FF0000")
+
+            )
+
 
 //
 //
@@ -426,9 +434,40 @@ class MainActivity : AppCompatActivity(), GLSurfaceView.Renderer {
 
                 GLES.updateMatrix(mMatrix, aMatrix)
                 hello.setTexture()
-                TexRectangular.setup()
-                TexRectangular.draw(0.5f, .1f, 1.0f, 0.5f, 0.0f)
+                hello.setup()
+                hello.draw(0.5f, .1f, 1.0f, 0.5f, 0.0f)
+            }
 
+
+//            if(StrokeProvider.mStrokes.size > 0){
+            if(true){
+                Log.e("-----------------------","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAaa")
+                GLES.useProgram()
+
+                val dummyFloat = FloatArray(1)
+                val dummyBuffer = BufferUtil.makeFloatBuffer(dummyFloat)
+                //シェーダのattribute属性の変数に値を設定していないと暴走するのでここでセットしておく。この位置でないといけない
+                GLES20.glVertexAttribPointer(GLES.positionHandle, 3, GLES20.GL_FLOAT, false, 0, dummyBuffer)
+                GLES20.glVertexAttribPointer(GLES.normalHandle, 3, GLES20.GL_FLOAT, false, 0, dummyBuffer)
+                GLES20.glVertexAttribPointer(GLES.texcoordHandle, 2, GLES20.GL_FLOAT, false, 0, dummyBuffer)
+
+                GLES.disableShading()
+                GLES.enableTexture()
+                //変換マトリックス
+                val mMatrix = FloatArray(16) //モデル変換マトリックス
+                val aMatrix = FloatArray(16) //モデル変換マトリックス
+                Matrix.setIdentityM(aMatrix, 0)
+                Matrix.setIdentityM(mMatrix, 0)
+
+                GLES.setPMatrix(mMatrix)
+                GLES.setCMatrix(mMatrix)
+
+                Matrix.setIdentityM(mMatrix, 0)
+                Matrix.translateM(mMatrix, 0, 0.5f, 0.1f, -0.3f)
+                GLES.updateMatrix(mMatrix, aMatrix)
+                tri.setTexture()
+                tri.setup()
+                tri.draw(0.5f, .1f, 1.0f, 0.5f, 0.0f)
             }
 
 

@@ -11,7 +11,7 @@ import javax.microedition.khronos.opengles.GL10
 /**
  * Created by Tommy on 2015/07/15.
  */
-class StringTexture {
+class TrianglTexture {
     private var TextureId = -1
     private var TextureUnitNumber = 0
 
@@ -87,7 +87,7 @@ class StringTexture {
         GLES20.glUniform1i(GLES.textureHandle, TextureUnitNumber) //テクスチャユニット番号を指定する
         ShaderUtil.checkGLError("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAa", "set Texture4")
     }
-
+    
 
     //bufferの定義
     private var vertexBuffer: FloatBuffer? = null

@@ -192,7 +192,7 @@ class Stroke {
 
     fun offsetToPose(pose: Pose) {
         for (i in points.indices) {
-            val p: Vector3f = LineUtils.TransformPointToPose(points[i], pose)
+            val p: Vector3f = LineUtils.transformPointToPose(points[i], pose)
             points[i] = p
         }
     }
