@@ -76,13 +76,7 @@ object LineShaderRenderer {
     var mDrawDistance = 0f
     var mNumPoints = 0
 
-    /**
-     * Allocates and initializes OpenGL resources needed by the Line renderer.  Must be
-     * called on the OpenGL thread, typically in
-     * [GLSurfaceView.Renderer.onSurfaceCreated].
-     *
-     * @param context Needed to access shader source.
-     */
+
     @Throws(IOException::class)
     fun createOnGlThread(context: Context) {
         ShaderUtil.checkGLError(TAG, "before create")

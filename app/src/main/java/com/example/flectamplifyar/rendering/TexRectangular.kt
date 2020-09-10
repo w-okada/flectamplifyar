@@ -1,7 +1,6 @@
 package com.example.flectamplifyar.rendering
 
 import android.opengl.GLES20
-import android.util.Log
 import com.example.flectamplifyar.rendering.BufferUtil.makeByteBuffer
 import com.example.flectamplifyar.rendering.BufferUtil.makeFloatBuffer
 import java.nio.ByteBuffer

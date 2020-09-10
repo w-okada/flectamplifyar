@@ -7,7 +7,6 @@ import android.view.MotionEvent
 import android.view.View
 import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.BlockingQueue
-import android.util.Log
 
 object TapHelper: View.OnTouchListener{
 

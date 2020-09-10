@@ -21,7 +21,7 @@ object DepthTexture{
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR)
     }
 
-    fun updateWithDepthImageOnGlThread(frame: Frame): Unit {
+    fun updateWithDepthImageOnGlThread(frame: Frame) {
         try {
             val depthImage = frame.acquireDepthImage()
             width = depthImage.width

@@ -53,17 +53,17 @@ class StringTexture {
 
 
         // Texture アップロード
-        val FIRST_INDEX = 0
-        val DEFAULT_OFFSET = 0
+        val firstIndex = 0
+        val defaultOffset = 0
         val textures = IntArray(1)
         if (TextureId != -1) {
-            textures[FIRST_INDEX] = TextureId
-            GLES20.glDeleteTextures(1, textures, DEFAULT_OFFSET)
+            textures[firstIndex] = TextureId
+            GLES20.glDeleteTextures(1, textures, defaultOffset)
         }
-        GLES20.glGenTextures(1, textures, DEFAULT_OFFSET)
+        GLES20.glGenTextures(1, textures, defaultOffset)
         Log.e("-------------------","STRING TEXTURE ID = ${textures[0]}")
 
-        TextureId = textures[FIRST_INDEX]
+        TextureId = textures[firstIndex]
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0)
 //        GLES20.glActiveTexture(GLES20.GL_TEXTURE0+TextureUnitNumber);
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, TextureId)

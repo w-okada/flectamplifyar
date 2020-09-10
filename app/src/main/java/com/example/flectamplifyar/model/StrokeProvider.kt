@@ -2,7 +2,6 @@ package com.example.flectamplifyar.model
 
 import android.view.MotionEvent
 import java.util.ArrayList
-import java.util.concurrent.atomic.AtomicBoolean
 import javax.vecmath.Vector3f
 
 object StrokeProvider {

@@ -77,7 +77,7 @@ object BackgroundRenderer{
         if (numVertices != QUAD_COORDS.size / COORDS_PER_VERTEX) {
             throw RuntimeException("Unexpected number of vertices in BackgroundRenderer.")
         }
-        val bbCoords = ByteBuffer.allocateDirect(BackgroundRenderer.QUAD_COORDS.size * FLOAT_SIZE)
+        val bbCoords = ByteBuffer.allocateDirect(QUAD_COORDS.size * FLOAT_SIZE)
         bbCoords.order(ByteOrder.nativeOrder())
         quadCoords = bbCoords.asFloatBuffer()
         quadCoords.put(QUAD_COORDS)
@@ -134,16 +134,7 @@ object BackgroundRenderer{
     }
 
 
-    /**
-     * Draws the AR background image. The image will be drawn such that virtual content rendered with
-     * the matrices provided by [com.google.ar.core.Camera.getViewMatrix] and
-     * [com.google.ar.core.Camera.getProjectionMatrix] will
-     * accurately follow static physical objects. This must be called **before** drawing virtual
-     * content.
-     *
-     * @param frame The current `Frame` as returned by [Session.update].
-     * @param debugShowDepthMap Toggles whether to show the live camera feed or latest depth image.
-     */
+
     fun draw(frame: Frame, debugShowDepthMap: Boolean) {
         // If display rotation changed (also includes view size change), we need to re-query the uv
         // coordinates for the screen rect, as they may have changed as well.

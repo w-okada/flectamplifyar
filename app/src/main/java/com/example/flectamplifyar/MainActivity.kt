@@ -9,13 +9,9 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
-import androidx.recyclerview.widget.SnapHelper
 import com.amplifyframework.AmplifyException
-import com.amplifyframework.api.aws.AWSApiPlugin
-import com.amplifyframework.api.rest.RestOptions
 import com.amplifyframework.auth.cognito.AWSCognitoAuthPlugin
 import com.amplifyframework.core.Amplify
-import com.amplifyframework.storage.s3.AWSS3StoragePlugin
 import com.example.flectamplifyar.helper.*
 import com.example.flectamplifyar.helper.SnackbarHelper.showError
 import com.example.flectamplifyar.model.Stroke
@@ -149,7 +145,7 @@ class MainActivity : AppCompatActivity(), GLSurfaceView.Renderer {
                 config.planeFindingMode = Config.PlaneFindingMode.HORIZONTAL_AND_VERTICAL
 
 //                config.augmentedFaceMode = Config.AugmentedFaceMode.MESH3D
-                imageDatabase = AugmentedImageDatabase(session);
+                imageDatabase = AugmentedImageDatabase(session)
                 config.augmentedImageDatabase = imageDatabase
                 config.focusMode = Config.FocusMode.AUTO
                 session!!.configure(config)
@@ -245,7 +241,7 @@ class MainActivity : AppCompatActivity(), GLSurfaceView.Renderer {
     }
 
 
-    lateinit var Hello:StringTexture
+    lateinit var hello:StringTexture
 
     override fun onSurfaceCreated(gl: GL10, config: EGLConfig) {
         GLES20.glClearColor(0.1f, 0.1f, 0.1f, 1.0f)
@@ -266,7 +262,7 @@ class MainActivity : AppCompatActivity(), GLSurfaceView.Renderer {
             GLES.setDepthTexture(
                 DepthTexture.getTextureId(), DepthTexture.getWidth(), DepthTexture.getHeight()
             )
-            Hello = StringTexture(
+            hello = StringTexture(
                 "FLECT", 20f,
                 Color.parseColor("#FFFFFFFF"),
                 Color.parseColor("#55FF0000")
@@ -400,38 +396,38 @@ class MainActivity : AppCompatActivity(), GLSurfaceView.Renderer {
                 //変換マトリックス
                 val mMatrix = FloatArray(16) //モデル変換マトリックス
                 GLES.useProgram()
-                val DummyFloat = FloatArray(1)
-                val DummyBuffer = BufferUtil.makeFloatBuffer(DummyFloat)
+                val dummyFloat = FloatArray(1)
+                val dummyBuffer = BufferUtil.makeFloatBuffer(dummyFloat)
                 //シェーダのattribute属性の変数に値を設定していないと暴走するのでここでセットしておく。この位置でないといけない
-                GLES20.glVertexAttribPointer(GLES.positionHandle, 3, GLES20.GL_FLOAT, false, 0, DummyBuffer)
-                GLES20.glVertexAttribPointer(GLES.normalHandle, 3, GLES20.GL_FLOAT, false, 0, DummyBuffer)
-                GLES20.glVertexAttribPointer(GLES.texcoordHandle, 2, GLES20.GL_FLOAT, false, 0, DummyBuffer)
+                GLES20.glVertexAttribPointer(GLES.positionHandle, 3, GLES20.GL_FLOAT, false, 0, dummyBuffer)
+                GLES20.glVertexAttribPointer(GLES.normalHandle, 3, GLES20.GL_FLOAT, false, 0, dummyBuffer)
+                GLES20.glVertexAttribPointer(GLES.texcoordHandle, 2, GLES20.GL_FLOAT, false, 0, dummyBuffer)
 
                 ShaderUtil.checkGLError("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAa", "before set texture0")
 
                 //無変換の記述はここ
-                GLES.disableShading(); //シェーディング機能は使わない
-                GLES.enableTexture();
-                GLES.setPMatrix(projmtx);
+                GLES.disableShading()
+                GLES.enableTexture()
+                GLES.setPMatrix(projmtx)
 
-                GLES.setCMatrix(viewmtx);
+                GLES.setCMatrix(viewmtx)
 
                 //大きい地球の最前面にHelloを表示
-                Matrix.setIdentityM(mMatrix, 0);
+                Matrix.setIdentityM(mMatrix, 0)
 
                 val aMatrix = FloatArray(16) //モデル変換マトリックス
-//                Matrix.setIdentityM(aMatrix, 0);
+//                Matrix.setIdentityM(aMatrix, 0)
                 mAnchor!!.pose.toMatrix(aMatrix, 0)
 
-                Matrix.translateM(mMatrix, 0, l.getPoints()[0].x, l.getPoints()[0].y, l.getPoints()[0].z);
-//                Matrix.translateM(mMatrix, 0, 0.1f, 0f, 0f);
-                Matrix.scaleM(mMatrix, 0, 0.1f, 0.1f , 0.1f);
+                Matrix.translateM(mMatrix, 0, l.getPoints()[0].x, l.getPoints()[0].y, l.getPoints()[0].z)
+//                Matrix.translateM(mMatrix, 0, 0.1f, 0f, 0f)
+                Matrix.scaleM(mMatrix, 0, 0.1f, 0.1f , 0.1f)
                 ShaderUtil.checkGLError("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAa", "before set texture1")
 
-                GLES.updateMatrix(mMatrix, aMatrix);//現在の変換行列をシェーダに指定2
-                Hello.setTexture();
+                GLES.updateMatrix(mMatrix, aMatrix)
+                hello.setTexture()
                 TexRectangular.setup()
-                TexRectangular.draw(0.5f, .1f, 1.0f, 0.5f, 0.0f);
+                TexRectangular.draw(0.5f, .1f, 1.0f, 0.5f, 0.0f)
 
             }
 
@@ -450,8 +446,7 @@ class MainActivity : AppCompatActivity(), GLSurfaceView.Renderer {
         camera.getProjectionMatrix(projmtx, 0, 0.1f, 100.0f)
         val viewmtx = FloatArray(16)
         camera.getViewMatrix(viewmtx, 0)
-        val newPoint = LineUtils.GetWorldCoords(touchPoint, mScreenWidth, mScreenHeight, projmtx, viewmtx)
-        return newPoint
+        return  LineUtils.getWorldCoords(touchPoint, mScreenWidth, mScreenHeight, projmtx, viewmtx)
     }
 
 
@@ -465,7 +460,7 @@ class MainActivity : AppCompatActivity(), GLSurfaceView.Renderer {
             //addPoint2f(mLastTouch, frame, camera)
             var point = convertWorldCordPoint(mLastTouch, frame, camera)
             if (mAnchor != null && mAnchor!!.trackingState == TrackingState.TRACKING) {
-                point = LineUtils.TransformPointToPose(point, mAnchor!!.getPose());
+                point = LineUtils.transformPointToPose(point, mAnchor!!.getPose())
                 StrokeProvider.addNewEvent(tap, point)
             }
         }

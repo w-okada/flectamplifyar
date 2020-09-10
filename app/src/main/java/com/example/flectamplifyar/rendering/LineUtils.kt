@@ -9,7 +9,7 @@ import javax.vecmath.Vector3f
 
 
 object LineUtils {
-    fun GetWorldCoords(touchPoint: Vector2f?, screenWidth: Float, screenHeight: Float, projectionMatrix: FloatArray, viewMatrix: FloatArray): Vector3f {
+    fun getWorldCoords(touchPoint: Vector2f?, screenWidth: Float, screenHeight: Float, projectionMatrix: FloatArray, viewMatrix: FloatArray): Vector3f {
         val touchRay: Ray = projectRay(Vector2f(touchPoint), screenWidth, screenHeight, projectionMatrix, viewMatrix)
         touchRay.direction.scale(AppSettings.strokeDrawDistance)
         touchRay.origin.add(touchRay.direction)
@@ -53,7 +53,7 @@ object LineUtils {
     /**
      * Transform a vector3f FROM anchor coordinates TO world coordinates
      */
-    fun TransformPointFromPose(point: Vector3f, anchorPose: Pose): Vector3f {
+    fun transformPointFromPose(point: Vector3f, anchorPose: Pose): Vector3f {
         var position = FloatArray(3)
         position[0] = point.x
         position[1] = point.y
@@ -65,7 +65,7 @@ object LineUtils {
     /**
      * Transform a vector3f TO anchor coordinates FROM world coordinates
      */
-    fun TransformPointToPose(point: Vector3f, anchorPose: Pose): Vector3f {
+    fun transformPointToPose(point: Vector3f, anchorPose: Pose): Vector3f {
         // Recenter to anchor
         var position = FloatArray(3)
         position[0] = point.x

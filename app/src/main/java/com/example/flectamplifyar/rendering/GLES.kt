@@ -3,7 +3,6 @@ package com.example.flectamplifyar.rendering
 import android.content.Context
 import android.opengl.GLES20
 import android.opengl.Matrix
-import android.util.Log
 
 /**
  * Created by tommy on 2015/06/18.
@@ -108,7 +107,7 @@ object GLES {
         //shading可否ハンドルの取得
         enableShadingHandle = GLES20.glGetUniformLocation(myProgram, "u_EnableShading")
         //texture可否ハンドルの取得
-        enableTextureHandle = GLES20.glGetUniformLocation(myProgram, "u_EnableTexture");
+        enableTextureHandle = GLES20.glGetUniformLocation(myProgram, "u_EnableTexture")
 
 
         //光源のハンドルの取得
@@ -134,8 +133,8 @@ object GLES {
         normalHandle = GLES20.glGetAttribLocation(myProgram, "a_Normal")
 
         //テクスチャのハンドルの取得
-        texcoordHandle = GLES20.glGetAttribLocation(myProgram, "a_Texcoord");
-        textureHandle = GLES20.glGetUniformLocation(myProgram, "u_Texture");
+        texcoordHandle = GLES20.glGetAttribLocation(myProgram, "a_Texcoord")
+        textureHandle = GLES20.glGetUniformLocation(myProgram, "u_Texture")
 
         // Occlusion
 
