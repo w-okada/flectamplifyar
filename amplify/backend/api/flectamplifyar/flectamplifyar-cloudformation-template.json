@@ -14,15 +14,15 @@
         },
     
     
-          "functionflectamplifyar4cb622d4Name": {
+          "functionflectamplifyar4aa5aa4bName": {
             "Type": "String",
-            "Default": "functionflectamplifyar4cb622d4Name"
+            "Default": "functionflectamplifyar4aa5aa4bName"
           },
         
           
-          "functionflectamplifyar4cb622d4Arn": {
+          "functionflectamplifyar4aa5aa4bArn": {
             "Type": "String",
-            "Default": "functionflectamplifyar4cb622d4Arn"
+            "Default": "functionflectamplifyar4aa5aa4bArn"
           }
         
           
@@ -90,7 +90,7 @@
                               ]
                             },
                               "/POST",
-                            "/markers/*/*"
+                            "/*"
                           ]
                         ]
                       },
@@ -121,7 +121,7 @@
                               ]
                             },
                               "/POST",
-                            "/markers/*"
+                            ""
                           ]
                         ]
                       }
@@ -156,7 +156,7 @@
                               ]
                             },
                               "/GET",
-                            "/markers/*/*"
+                            "/*"
                           ]
                         ]
                       },
@@ -187,7 +187,7 @@
                               ]
                             },
                               "/GET",
-                            "/markers/*"
+                            ""
                           ]
                         ]
                       }
@@ -222,7 +222,7 @@
                               ]
                             },
                               "/PUT",
-                            "/markers/*/*"
+                            "/*"
                           ]
                         ]
                       },
@@ -253,7 +253,7 @@
                               ]
                             },
                               "/PUT",
-                            "/markers/*"
+                            ""
                           ]
                         ]
                       }
@@ -288,7 +288,7 @@
                               ]
                             },
                               "/PATCH",
-                            "/markers/*/*"
+                            "/*"
                           ]
                         ]
                       },
@@ -319,7 +319,7 @@
                               ]
                             },
                               "/PATCH",
-                            "/markers/*"
+                            ""
                           ]
                         ]
                       }
@@ -354,7 +354,7 @@
                               ]
                             },
                               "/DELETE",
-                            "/markers/*/*"
+                            "/*"
                           ]
                         ]
                       },
@@ -385,7 +385,7 @@
                               ]
                             },
                               "/DELETE",
-                            "/markers/*"
+                            ""
                           ]
                         ]
                       }
@@ -450,7 +450,7 @@
             ],
             "paths": {
               
-              "/markers/{id}": {
+              "/markers": {
                 "options": {
                   "consumes": [
                     "application/json"
@@ -542,7 +542,7 @@
                             
                             {
                                 
-                                "Ref": "functionflectamplifyar4cb622d4Arn"
+                                "Ref": "functionflectamplifyar4aa5aa4bArn"
                             },
                             
                             "/invocations"
@@ -555,7 +555,7 @@
                   }
                 }
               },
-              "/markers/{id}/{proxy+}": {
+              "/markers/{proxy+}": {
                 "options": {
                   "consumes": [
                     "application/json"
@@ -647,7 +647,7 @@
                           
                           {
                             
-                            "Ref": "functionflectamplifyar4cb622d4Arn"
+                            "Ref": "functionflectamplifyar4aa5aa4bArn"
                           },
                           
                           "/invocations"
@@ -704,12 +704,12 @@
                   
         
         
-        "functionflectamplifyar4cb622d4Permissionflectamplifyar": {
+        "functionflectamplifyar4aa5aa4bPermissionflectamplifyar": {
             "Type": "AWS::Lambda::Permission",
             "Properties": {
                 "FunctionName": 
                     {
-                        "Ref":  "functionflectamplifyar4cb622d4Name"
+                        "Ref":  "functionflectamplifyar4aa5aa4bName"
                     },
                     
                     "Action": "lambda:InvokeFunction",
@@ -739,7 +739,7 @@
         
         
         
-      "DeploymentAPIGWflectamplifyar": {
+      "DeploymentAPIGWflectamplifyare9439e47": {
         "Type": "AWS::ApiGateway::Deployment",
         "Properties": {
           "Description": "The Development stage deployment of your API.",

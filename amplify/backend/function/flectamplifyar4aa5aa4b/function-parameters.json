@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "storage": {
+      "flectamplifyar": [
+        "create",
+        "read",
+        "update",
+        "delete"
+      ]
+    }
+  },
+  "lambdaLayers": [
+    {
+      "type": "ProjectLayer",
+      "resourceName": "flectamplifyar01ab1793",
+      "version": 1
+    }
+  ]
+}

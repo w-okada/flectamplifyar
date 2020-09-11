@@ -14,7 +14,7 @@
     }
   },
   "function": {
-    "flectamplifyar4cb622d4": {
+    "flectamplifyar4aa5aa4b": {
       "build": true,
       "providerPlugin": "awscloudformation",
       "service": "Lambda",
@@ -25,8 +25,20 @@
           "attributes": [
             "BucketName"
           ]
+        },
+        {
+          "category": "function",
+          "resourceName": "flectamplifyar01ab1793",
+          "attributes": [
+            "Arn"
+          ]
         }
       ]
+    },
+    "flectamplifyar01ab1793": {
+      "providerPlugin": "awscloudformation",
+      "service": "LambdaLayer",
+      "build": true
     }
   },
   "api": {
@@ -36,7 +48,7 @@
       "dependsOn": [
         {
           "category": "function",
-          "resourceName": "flectamplifyar4cb622d4",
+          "resourceName": "flectamplifyar4aa5aa4b",
           "attributes": [
             "Name",
             "Arn"

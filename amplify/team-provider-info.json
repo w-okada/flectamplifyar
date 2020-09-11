@@ -41,7 +41,30 @@
         }
       },
       "function": {
-        "flectamplifyar4cb622d4": {}
+        "flectamplifyar4cb622d4": {},
+        "flectamplifyar01ab1793": {
+          "deploymentBucketName": "amplify-flectamplifyar-dev-172751-deployment",
+          "s3Key": "amplify-builds/flectamplifyar01ab1793-build.zip"
+        }
+      }
+    },
+    "nonCFNdata": {
+      "function": {
+        "flectamplifyar01ab1793": {
+          "layerVersionMap": {
+            "1": {
+              "permissions": [
+                {
+                  "type": "public"
+                },
+                {
+                  "type": "private"
+                }
+              ],
+              "hash": "piPUHPhM+338p1gBY4jnBplecqH9xtrWPAoBUfEdZmU="
+            }
+          }
+        }
       }
     }
   }

@@ -1,8 +1,8 @@
 {
     "paths": [
         {
-            "name": "/markers/{id}",
-            "lambdaFunction": "flectamplifyar4cb622d4",
+            "name": "/markers",
+            "lambdaFunction": "flectamplifyar4aa5aa4b",
             "privacy": {
                 "private": true,
                 "auth": [
@@ -12,31 +12,31 @@
                     "/PATCH",
                     "/DELETE"
                 ]
-            },
-            "policyResourceName": "/markers/*"
+            }
         }
     ],
     "resourceName": "flectamplifyar",
     "apiName": "flectamplifyar",
     "functionArns": [
         {
-            "lambdaFunction": "flectamplifyar4cb622d4"
+            "lambdaFunction": "flectamplifyar4aa5aa4b"
         }
     ],
     "privacy": {
         "auth": 1,
         "unauth": 0,
-        "authRoleName": "amplify-flectamplifyar-prod-171121-authRole",
-        "unAuthRoleName": "amplify-flectamplifyar-prod-171121-unauthRole"
+        "authRoleName": "amplify-flectamplifyar-dev-172751-authRole",
+        "unAuthRoleName": "amplify-flectamplifyar-dev-172751-unauthRole"
     },
     "dependsOn": [
         {
             "category": "function",
-            "resourceName": "flectamplifyar4cb622d4",
+            "resourceName": "flectamplifyar4aa5aa4b",
             "attributes": [
                 "Name",
                 "Arn"
             ]
         }
-    ]
+    ],
+    "uuid": "e9439e47"
 }
