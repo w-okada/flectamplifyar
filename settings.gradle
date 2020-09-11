@@ -1,3 +1,5 @@
+include ':aws-storage-s3-release'
+//include ':app',  ':aws-storage-s3-release'
 include ':vecmath'
 include ':app'
 rootProject.name = "flectamplifyar"

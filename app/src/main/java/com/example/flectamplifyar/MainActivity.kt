@@ -15,6 +15,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.amplifyframework.AmplifyException
 import com.amplifyframework.api.aws.AWSApiPlugin
+import com.amplifyframework.api.rest.RestOptions
 import com.amplifyframework.auth.cognito.AWSCognitoAuthPlugin
 import com.amplifyframework.core.Amplify
 import com.amplifyframework.storage.s3.AWSS3StoragePlugin
@@ -84,15 +85,6 @@ class MainActivity : AppCompatActivity(), GLSurfaceView.Renderer {
             )
 
 
-//            val options: RestOptions = RestOptions.builder()
-//                .addPath("/markers/abc")
-//                .addBody("{\"name\":\"Mow the lawn\"}".toByteArray())
-//                .build()
-//
-//            Amplify.API.post(options,
-//                { response -> Log.i("MyAmplifyApp", "POST " + response.data.asString()) },
-//                { error -> Log.e("MyAmplifyApp", "POST failed", error) }
-//            )
 
         } catch (error: AmplifyException) {
             Log.e("MyAmplifyApp", "Could not initialize Amplify", error)
@@ -244,6 +236,27 @@ class MainActivity : AppCompatActivity(), GLSurfaceView.Renderer {
             { result -> Log.i("MyAmplifyApp", "Successfully uploaded: " + result.getKey()) },
             { error -> Log.e("MyAmplifyApp", "Upload failed", error) }
         )
+
+        val plugin = Amplify.Storage.getPlugin("awsS3StoragePlugin") as AWSS3StoragePlugin
+//        Log.e(TAG,"Bucket  ${plugin.bucketName} ${plugin.regionStr}")
+
+
+        val body = "{" +
+                "\"bucket\":\"${plugin.bucketName}\", " +
+                "\"region\":\"${plugin.regionStr}\", " +
+                "\"key\":\"${key}\" " +
+                "}"
+        val options: RestOptions = RestOptions.builder()
+            .addPath("/markers")
+            .addBody(body.toByteArray())
+            .build()
+
+        Amplify.API.post(options,
+            { response -> Log.i("MyAmplifyApp", "POST " + response.data.asString()) },
+            { error -> Log.e("MyAmplifyApp", "POST failed", error) }
+        )
+
+
 
     }
 
