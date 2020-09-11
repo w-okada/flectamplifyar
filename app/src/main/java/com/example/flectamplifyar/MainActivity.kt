@@ -385,7 +385,7 @@ class MainActivity : AppCompatActivity(), GLSurfaceView.Renderer {
 
                     val mHandler = Handler(Looper.getMainLooper());
                     mHandler.post{
-                        uploadMarker(bm, "test.jpg")
+                        uploadMarker(bm, "test222.jpg")
                     }
 //
 //
