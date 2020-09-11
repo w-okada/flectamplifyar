@@ -367,6 +367,7 @@ class MainActivity : AppCompatActivity(), GLSurfaceView.Renderer {
             return
         }
 
+
         // Notify ARCore session that the view size changed so that the perspective matrix and
         // the video background can be properly adjusted.
         DisplayRotationHelper.updateSessionIfNeeded(session!!)
