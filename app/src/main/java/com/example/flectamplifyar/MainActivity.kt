@@ -1,25 +1,33 @@
 package com.example.flectamplifyar
 
 import android.content.Intent
-import android.graphics.Color
+import android.graphics.*
+import android.graphics.ImageFormat
+import android.media.Image
 import android.opengl.GLES20
 import android.opengl.GLSurfaceView
 import android.opengl.Matrix
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.amplifyframework.AmplifyException
+import com.amplifyframework.api.aws.AWSApiPlugin
 import com.amplifyframework.auth.cognito.AWSCognitoAuthPlugin
 import com.amplifyframework.core.Amplify
+import com.amplifyframework.storage.s3.AWSS3StoragePlugin
 import com.example.flectamplifyar.helper.*
 import com.example.flectamplifyar.helper.SnackbarHelper.showError
 import com.example.flectamplifyar.model.Stroke
 import com.example.flectamplifyar.model.StrokeProvider
 import com.example.flectamplifyar.rendering.*
 import com.google.ar.core.*
+import com.google.ar.core.Camera
 import com.google.ar.core.exceptions.*
 import kotlinx.android.synthetic.main.activity_main.*
+import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.IOException
 import java.nio.FloatBuffer
@@ -45,6 +53,8 @@ class MainActivity : AppCompatActivity(), GLSurfaceView.Renderer {
     private var mAnchor: Anchor? = null
     private val SEARCHING_PLANE_MESSAGE = "Searching for surfaces..."
 
+    private var captureNextFrame = false
+
     companion object {
         private val TAG: String = MainActivity::class.java.getSimpleName()
     }
@@ -56,25 +66,24 @@ class MainActivity : AppCompatActivity(), GLSurfaceView.Renderer {
         try {
             Log.i("MyAmplifyApp", "Initialized Amplify")
 
-//            Amplify.addPlugin(AWSCognitoAuthPlugin())
-//            Amplify.addPlugin(AWSS3StoragePlugin())
-//            Amplify.addPlugin(AWSApiPlugin())
-//            Amplify.configure(applicationContext)
+            Amplify.addPlugin(AWSCognitoAuthPlugin())
+            Amplify.addPlugin(AWSS3StoragePlugin())
+            Amplify.addPlugin(AWSApiPlugin())
+            Amplify.configure(applicationContext)
 //
+
+            Amplify.Auth.fetchAuthSession(
+                { result -> Log.i("AmplifyQuickstart", result.toString()) },
+                { error -> Log.e("AmplifyQuickstart", error.toString()) }
+            )
 //
-//            Amplify.Auth.fetchAuthSession(
-//                { result -> Log.i("AmplifyQuickstart", result.toString()) },
-//                { error -> Log.e("AmplifyQuickstart", error.toString()) }
-//            )
-//
-//            Amplify.Auth.signInWithWebUI(
-//                this,
-//                { result -> Log.i("AuthQuickStart", result.toString()) },
-//                { error -> Log.e("AuthQuickStart", error.toString()) }
-//            )
-//
-//            uploadFile()
-//
+            Amplify.Auth.signInWithWebUI(
+                this,
+                { result -> Log.i("AuthQuickStart", result.toString()) },
+                { error -> Log.e("AuthQuickStart", error.toString()) }
+            )
+
+
 //            val options: RestOptions = RestOptions.builder()
 //                .addPath("/markers/abc")
 //                .addBody("{\"name\":\"Mow the lawn\"}".toByteArray())
@@ -106,6 +115,11 @@ class MainActivity : AppCompatActivity(), GLSurfaceView.Renderer {
         surfaceview.setRenderer(this)
         surfaceview.renderMode = GLSurfaceView.RENDERMODE_CONTINUOUSLY
         surfaceview.setWillNotDraw(false)
+
+        captureMarker.setOnClickListener {
+            captureNextFrame = true
+        }
+
 
         calculateUVTransform = true
 
@@ -220,6 +234,18 @@ class MainActivity : AppCompatActivity(), GLSurfaceView.Renderer {
         )
     }
 
+    private fun uploadMarker(bm: Bitmap, key:String){
+        val exampleFile = File(applicationContext.filesDir, key)
+        bm.compress(Bitmap.CompressFormat.JPEG, 100, exampleFile.outputStream())
+
+        Amplify.Storage.uploadFile(
+            key,
+            exampleFile,
+            { result -> Log.i("MyAmplifyApp", "Successfully uploaded: " + result.getKey()) },
+            { error -> Log.e("MyAmplifyApp", "Upload failed", error) }
+        )
+
+    }
 
     override fun onPause() {
         super.onPause()
@@ -351,6 +377,36 @@ class MainActivity : AppCompatActivity(), GLSurfaceView.Renderer {
             val camera = frame.camera
             val rotate = DisplayRotationHelper.getCameraSensorToDisplayRotation(session!!.cameraConfig.cameraId)
 
+            if(captureNextFrame){
+                captureNextFrame = false
+                try {
+                    val img = frame.acquireCameraImage()
+                    val bm = generateBitmap(img, rotate)
+
+                    val mHandler = Handler(Looper.getMainLooper());
+                    mHandler.post{
+                        uploadMarker(bm, "test.jpg")
+                    }
+//
+//
+//
+//
+//
+//                    val ret = imageDatabase.addImage("mmm_${session!!.config.augmentedImageDatabase.numImages}",bm)
+//                    val conf = session!!.config
+//                    conf.augmentedImageDatabase=imageDatabase
+//                    session!!.configure(conf)
+//                    session!!.config.augmentedImageDatabase= imageDatabase
+//                    Log.e("------", "AAAA ${session!!.config.augmentedImageDatabase.numImages} ${ret}")
+                } catch(e:Exception){
+                    Log.e("capture", "captureed3")
+                    Log.e("capture", e.toString())
+
+                }
+            }
+
+
+
             // Define Anchor
             val trackables = session!!.getAllTrackables(Plane::class.java)
             for(t in trackables){
@@ -419,30 +475,9 @@ class MainActivity : AppCompatActivity(), GLSurfaceView.Renderer {
                 val dummyFloat = FloatArray(1)
                 val dummyBuffer = BufferUtil.makeFloatBuffer(dummyFloat)
                 //シェーダのattribute属性の変数に値を設定していないと暴走するのでここでセットしておく。この位置でないといけない
-                GLES20.glVertexAttribPointer(
-                    GLES.positionHandle,
-                    3,
-                    GLES20.GL_FLOAT,
-                    false,
-                    0,
-                    dummyBuffer
-                )
-                GLES20.glVertexAttribPointer(
-                    GLES.normalHandle,
-                    3,
-                    GLES20.GL_FLOAT,
-                    false,
-                    0,
-                    dummyBuffer
-                )
-                GLES20.glVertexAttribPointer(
-                    GLES.texcoordHandle,
-                    2,
-                    GLES20.GL_FLOAT,
-                    false,
-                    0,
-                    dummyBuffer
-                )
+                GLES20.glVertexAttribPointer(GLES.positionHandle, 3, GLES20.GL_FLOAT, false, 0, dummyBuffer)
+                GLES20.glVertexAttribPointer(GLES.normalHandle, 3, GLES20.GL_FLOAT, false, 0, dummyBuffer)
+                GLES20.glVertexAttribPointer(GLES.texcoordHandle, 2, GLES20.GL_FLOAT, false, 0, dummyBuffer)
 
                 ShaderUtil.checkGLError("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAa", "before set texture0")
 
@@ -510,7 +545,47 @@ class MainActivity : AppCompatActivity(), GLSurfaceView.Renderer {
         }
     }
 
+    private fun generateBitmap(img: Image, rotate:Int):Bitmap{
+        val y_size = img.planes[0].buffer.remaining()
+        val u_size = img.planes[1].buffer.remaining()
+        val v_size = img.planes[2].buffer.remaining()
 
+        val ba = ByteArray(y_size + u_size + v_size)
+        img.planes[0].buffer.get(ba, 0, y_size)
+
+        val bau = ByteArray(u_size)
+        val bav = ByteArray(v_size)
+        img.planes[1].buffer.get(bau, 0, u_size)
+        img.planes[2].buffer.get(bav, 0, v_size)
+        img.planes[2].buffer.get(ba, y_size, u_size)
+        img.planes[1].buffer.get(ba, y_size + u_size, v_size)
+
+        val yimg = YuvImage(ba, ImageFormat.NV21, img.width, img.height, null)
+        val out = ByteArrayOutputStream()
+        yimg.compressToJpeg(Rect(0, 0, img.width, img.height), 100, out);
+        val yba = out.toByteArray()
+        val ybm = BitmapFactory.decodeByteArray(yba, 0, yba.size);
+
+
+        val bm: Bitmap = when(rotate){
+            90 ->{
+                val mat = android.graphics.Matrix()
+                mat.postRotate(rotate.toFloat())
+                Bitmap.createBitmap(ybm, 0, 0, img.width, img.height, mat, true)
+            }
+            180 ->{
+                val mat = android.graphics.Matrix()
+                mat.postRotate(rotate.toFloat())
+                Bitmap.createBitmap(ybm, 0, 0, img.width, img.height, mat, true)
+            }
+            else -> {
+                ybm
+            }
+        }
+        img.close()
+
+        return bm
+    }
 
 
     private fun convertWorldCordPoint(touchPoint: Vector2f, frame: Frame, camera: Camera): Vector3f {
@@ -520,7 +595,6 @@ class MainActivity : AppCompatActivity(), GLSurfaceView.Renderer {
         camera.getViewMatrix(viewmtx, 0)
         return  LineUtils.getWorldCoords(touchPoint, mScreenWidth, mScreenHeight, projmtx, viewmtx)
     }
-
 
     private val mSharedStrokes: MutableMap<String, Stroke> = HashMap() // pair-partner's stroke
     private fun handleTap(frame: Frame, camera: Camera) {
@@ -548,7 +622,6 @@ class MainActivity : AppCompatActivity(), GLSurfaceView.Renderer {
             LineShaderRenderer.upload()
         }
     }
-
 
 
     /**
