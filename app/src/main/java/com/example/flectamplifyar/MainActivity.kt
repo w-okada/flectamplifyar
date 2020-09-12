@@ -38,6 +38,7 @@ import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 import javax.vecmath.Vector2f
 import javax.vecmath.Vector3f
+import java.util.UUID
 
 
 class MainActivity : AppCompatActivity(), GLSurfaceView.Renderer {
@@ -233,28 +234,30 @@ class MainActivity : AppCompatActivity(), GLSurfaceView.Renderer {
         Amplify.Storage.uploadFile(
             key,
             exampleFile,
-            { result -> Log.i("MyAmplifyApp", "Successfully uploaded: " + result.getKey()) },
+            { result ->
+                Log.i("MyAmplifyApp", "Successfully uploaded: " + result.getKey())
+                val plugin = Amplify.Storage.getPlugin("awsS3StoragePlugin") as AWSS3StoragePlugin
+                val body = "{" +
+                        "\"bucket\":\"${plugin.bucketName}\", " +
+                        "\"region\":\"${plugin.regionStr}\", " +
+                        "\"key\":\"${key}\" " +
+                        "}"
+                val options: RestOptions = RestOptions.builder()
+                    .addPath("/markers")
+                    .addBody(body.toByteArray())
+                    .build()
+
+                Amplify.API.post(options,
+                    { response -> Log.i("MyAmplifyApp", "POST " + response.data.asString()) },
+                    { error -> Log.e("MyAmplifyApp", "POST failed", error) }
+                )
+
+            },
             { error -> Log.e("MyAmplifyApp", "Upload failed", error) }
         )
 
-        val plugin = Amplify.Storage.getPlugin("awsS3StoragePlugin") as AWSS3StoragePlugin
-//        Log.e(TAG,"Bucket  ${plugin.bucketName} ${plugin.regionStr}")
 
 
-        val body = "{" +
-                "\"bucket\":\"${plugin.bucketName}\", " +
-                "\"region\":\"${plugin.regionStr}\", " +
-                "\"key\":\"${key}\" " +
-                "}"
-        val options: RestOptions = RestOptions.builder()
-            .addPath("/markers")
-            .addBody(body.toByteArray())
-            .build()
-
-        Amplify.API.post(options,
-            { response -> Log.i("MyAmplifyApp", "POST " + response.data.asString()) },
-            { error -> Log.e("MyAmplifyApp", "POST failed", error) }
-        )
 
 
 
@@ -399,7 +402,7 @@ class MainActivity : AppCompatActivity(), GLSurfaceView.Renderer {
 
                     val mHandler = Handler(Looper.getMainLooper());
                     mHandler.post{
-                        uploadMarker(bm, "test222.jpg")
+                        uploadMarker(bm, "${UUID.randomUUID().toString()}.jpg")
                     }
 //
 //

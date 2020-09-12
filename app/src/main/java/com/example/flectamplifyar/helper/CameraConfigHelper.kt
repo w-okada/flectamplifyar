@@ -34,7 +34,8 @@ object CameraConfigHelper{
             cpuHighResolutionCameraConfig =
                 getCameraConfigWithSelectedResolution(cameraConfigs,  ImageResolution.HIGH_RESOLUTION)
 
-            cpuResolution = ImageResolution.HIGH_RESOLUTION
+            //cpuResolution = ImageResolution.HIGH_RESOLUTION
+            cpuResolution = ImageResolution.LOW_RESOLUTION
         }
     }
 
