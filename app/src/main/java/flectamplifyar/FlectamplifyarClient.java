@@ -35,16 +35,16 @@ public interface FlectamplifyarClient {
      * 
      * @return void
      */
-    @com.amazonaws.mobileconnectors.apigateway.annotation.Operation(path = "/markers/{id}", method = "OPTIONS")
-    void markersIdOptions();
+    @com.amazonaws.mobileconnectors.apigateway.annotation.Operation(path = "/markers", method = "OPTIONS")
+    void markersOptions();
     
     /**
      * 
      * 
      * @return void
      */
-    @com.amazonaws.mobileconnectors.apigateway.annotation.Operation(path = "/markers/{id}/{proxy+}", method = "OPTIONS")
-    void markersIdProxyOptions();
+    @com.amazonaws.mobileconnectors.apigateway.annotation.Operation(path = "/markers/{proxy+}", method = "OPTIONS")
+    void markersProxyOptions();
     
 }
 
