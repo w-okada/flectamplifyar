@@ -6,6 +6,24 @@
         "read",
         "update",
         "delete"
+      ],
+      "Marker:@model(appsync)": [
+        "create",
+        "read",
+        "update",
+        "delete"
+      ],
+      "Canvas:@model(appsync)": [
+        "create",
+        "read",
+        "update",
+        "delete"
+      ],
+      "Element:@model(appsync)": [
+        "create",
+        "read",
+        "update",
+        "delete"
       ]
     }
   },

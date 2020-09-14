@@ -27,10 +27,10 @@
           ]
         },
         {
-          "category": "function",
-          "resourceName": "flectamplifyar01ab1793",
+          "category": "api",
+          "resourceName": "flectamplifyargraph",
           "attributes": [
-            "Arn"
+            "GraphQLAPIIdOutput"
           ]
         }
       ]
@@ -55,6 +55,21 @@
           ]
         }
       ]
+    },
+    "flectamplifyargraph": {
+      "service": "AppSync",
+      "providerPlugin": "awscloudformation",
+      "output": {
+        "authConfig": {
+          "defaultAuthentication": {
+            "authenticationType": "AMAZON_COGNITO_USER_POOLS",
+            "userPoolConfig": {
+              "userPoolId": "authflectamplifyar9796012f"
+            }
+          },
+          "additionalAuthenticationProviders": []
+        }
+      }
     }
   }
 }

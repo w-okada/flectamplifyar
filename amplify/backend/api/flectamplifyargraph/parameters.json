@@ -1,0 +1,11 @@
+{
+    "AppSyncApiName": "flectamplifyargraph",
+    "DynamoDBBillingMode": "PAY_PER_REQUEST",
+    "DynamoDBEnableServerSideEncryption": false,
+    "AuthCognitoUserPoolId": {
+        "Fn::GetAtt": [
+            "authflectamplifyar9796012f",
+            "Outputs.UserPoolId"
+        ]
+    }
+}

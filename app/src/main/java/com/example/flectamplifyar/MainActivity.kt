@@ -14,10 +14,16 @@ import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.amplifyframework.AmplifyException
+import com.amplifyframework.api.ApiException
+import com.amplifyframework.api.ApiOperation
 import com.amplifyframework.api.aws.AWSApiPlugin
+import com.amplifyframework.api.graphql.model.ModelMutation
+import com.amplifyframework.api.graphql.model.ModelSubscription
 import com.amplifyframework.api.rest.RestOptions
 import com.amplifyframework.auth.cognito.AWSCognitoAuthPlugin
 import com.amplifyframework.core.Amplify
+import com.amplifyframework.datastore.generated.model.Element
+import com.amplifyframework.datastore.generated.model.Marker
 import com.amplifyframework.storage.s3.AWSS3StoragePlugin
 import com.example.flectamplifyar.helper.*
 import com.example.flectamplifyar.helper.SnackbarHelper.showError
@@ -31,8 +37,6 @@ import kotlinx.android.synthetic.main.activity_main.*
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.IOException
-import java.nio.FloatBuffer
-import java.nio.ShortBuffer
 import java.util.*
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
@@ -78,7 +82,11 @@ class MainActivity : AppCompatActivity(), GLSurfaceView.Renderer {
                 { result -> Log.i("AmplifyQuickstart", result.toString()) },
                 { error -> Log.e("AmplifyQuickstart", error.toString()) }
             )
-//
+//            Amplify.Auth.signOut(
+//                { Log.i("AuthQuickstart", "Signed out successfully") },
+//                { error -> Log.e("AuthQuickstart", error.toString()) }
+//            )
+
             Amplify.Auth.signInWithWebUI(
                 this,
                 { result -> Log.i("AuthQuickStart", result.toString()) },
@@ -256,10 +264,25 @@ class MainActivity : AppCompatActivity(), GLSurfaceView.Renderer {
             { error -> Log.e("MyAmplifyApp", "Upload failed", error) }
         )
 
+        val marker = Marker.builder().score(11011110).name("abbbbbbb").id("a667841f-a0f2-4e98-bf46-66c68d06135ab").build()
+        Amplify.API.mutate(
+            ModelMutation.update(marker),
+            { response -> Log.i("MyAmplifyApp", "Added Todo with id: " + response) },
+            { error: ApiException? -> Log.e("MyAmplifyApp", "Create failed", error) }
+        )
 
 
 
-
+//        val todo: Todo = M.builder()
+//            .name("My first todo")
+//            .description("todo description")
+//            .build()
+//
+//        Amplify.API.mutate(
+//            ModelMutation.create(todo),
+//            { response -> Log.i("MyAmplifyApp", "Added Todo with id: " + response.getData().getId()) },
+//            { error: ApiException? -> Log.e("MyAmplifyApp", "Create failed", error) }
+//        )
 
     }
 

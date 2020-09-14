@@ -1,0 +1,35 @@
+# type Marker @model(subscriptions: { onCreate: [
+#                 "none",
+#                 "nameOnly(name: String!)",
+#                 "all(name: String!, score: Int!)",
+#             ]}) {
+#   id: ID!
+#   score: Int!
+#   name: String!
+#   canvases: [Canvas] @connection(keyName: "byMarker", fields: ["id"])
+# }
+
+type Marker @model{
+  id: ID!
+  score: Int!
+  name: String!
+  canvases: [Canvas] @connection(keyName: "byMarker", fields: ["id"])
+}
+
+
+type Canvas @model @key(name: "byMarker", fields: ["markerID"]) {
+  id: ID!
+  title: String!
+  owner: String!
+  markerID: ID!
+  marker: Marker @connection(fields: ["markerID"])
+  elements: [Element] @connection(keyName: "byCanvas", fields: ["id"])
+}
+
+type Element @model @key(name: "byCanvas", fields: ["canvasID"]) {
+  id: ID!
+  owner: String!
+  canvasID: ID!
+  canvas: Canvas @connection(fields: ["canvasID"])
+  content: String!
+}
