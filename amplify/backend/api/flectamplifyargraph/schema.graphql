@@ -13,6 +13,7 @@ type Marker @model{
   id: ID!
   score: Int!
   name: String!
+  owner: String!
   canvases: [Canvas] @connection(keyName: "byMarker", fields: ["id"])
 }
 

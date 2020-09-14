@@ -235,12 +235,13 @@ class MainActivity : AppCompatActivity(), GLSurfaceView.Renderer {
         )
     }
 
-    private fun uploadMarker(bm: Bitmap, key:String){
-        val exampleFile = File(applicationContext.filesDir, key)
+    private fun uploadMarker(bm: Bitmap, filename:String){
+        val exampleFile = File(applicationContext.filesDir, "${filename}")
         bm.compress(Bitmap.CompressFormat.JPEG, 100, exampleFile.outputStream())
 
+        val key = "pict/${filename}"
         Amplify.Storage.uploadFile(
-            key,
+            "${key}",
             exampleFile,
             { result ->
                 Log.i("MyAmplifyApp", "Successfully uploaded: " + result.getKey())

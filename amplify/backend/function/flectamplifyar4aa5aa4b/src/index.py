@@ -3,9 +3,26 @@ import subprocess
 from subprocess import PIPE
 import boto3
 import os
+import hashlib
+import time
 
 s3 = boto3.resource('s3')
-s3_cli = boto3.client('s3')
+dynamodb = boto3.resource('dynamodb')
+
+
+def generate_hash(file):
+  with open(file, mode='rb') as f:
+    content = f.read()
+  hasher = hashlib.sha1()
+  hasher.update(content)
+  sha1_hash = hasher.hexdigest()
+  return sha1_hash
+
+def calc_score(file):
+  proc = subprocess.run(f"/opt/arcoreimg eval-img --input_image_path={file}", shell=True, stdout=PIPE, stderr=PIPE, text=True)
+  res = proc.stdout
+  score = res.rstrip('\n')
+  return score
 
 def handler(event, context):
   print('received event:')
@@ -22,23 +39,48 @@ def handler(event, context):
     region = body["region"]
     key = body["key"]
     
+
+    # ファイルのダウンロード
     src_file = f'public/{key}'
-    dst_file = f'/tmp/{key}'
+    dst_file = f'/tmp/{os.path.basename(key)}'
     print(f'download from {src_file} to {dst_file}')
     s3.Bucket(bucket).download_file(src_file, dst_file)
+
+    # ハッシュ値計算
+    sha1_hash = generate_hash(dst_file)
     
-    proc = subprocess.run("ls /tmp -la", shell=True, stdout=PIPE, stderr=PIPE, text=True)
-    res = proc.stdout
-    print('STDOUT: {}'.format(res))
-    
-    proc = subprocess.run(f"/opt/arcoreimg eval-img --input_image_path={dst_file}", shell=True, stdout=PIPE, stderr=PIPE, text=True)
-    res = proc.stdout
-    print('STDOUT: {}'.format(res))
-    dict = {"bucket": bucket, "region": region, "key": key, "score":res.rstrip('\n')}
+    # Score計算
+    score = calc_score(dst_file)
+    if score.isdecimal():
+      score = int(score)
+    print(f'STDOUT: {score}')
+
+    # fileアップロード
+    new_file = f'public/marker/{sha1_hash}.jpg'
+    s3.Bucket(bucket).upload_file(dst_file, new_file)
+
+    # DynamoDB登録
+    createAt = int(time.time())
+    item = {
+      'id'       : sha1_hash,
+      'name'     : new_file,
+      'score'    : score,
+      'owner'    : "tbd",
+      'createAt' : createAt,
+      'updateAt' : createAt,
+    }
+
+    marker_table_name = os.environ['API_FLECTAMPLIFYARGRAPH_MARKERTABLE_NAME']    
+    print(f'tablename: {marker_table_name}')
+    marker_table = dynamodb.Table(marker_table_name)
+
+    # response = marker_table.scan()
+    # print(f'response: {response}')
+    marker_table.put_item(Item=item)
 
     return {
       'statusCode': 200,
-      'body': json.dumps(dict)
+      'body': json.dumps(item)
     }
   else:
     dict = {"name": "tarou", "age": 23, "gender": "man"}
@@ -46,30 +88,5 @@ def handler(event, context):
       'statusCode': 200,
       'body': json.dumps(dict)
     }
-
-
-
-  # proc = subprocess.run("ls -la", shell=True, stdout=PIPE, stderr=PIPE, text=True)
-  # res = proc.stdout
-  # print('STDOUT: {}'.format(res))
-  
-  # proc = subprocess.run("ls /opt", shell=True, stdout=PIPE, stderr=PIPE, text=True)
-  # res = proc.stdout
-  # print('STDOUT: {}'.format(res))
-  
-  # proc = subprocess.run("ls /opt/*", shell=True, stdout=PIPE, stderr=PIPE, text=True)
-  # res = proc.stdout
-  # print('STDOUT: {}'.format(res))
-  
-  # proc = subprocess.run("ls /opt/*/*", shell=True, stdout=PIPE, stderr=PIPE, text=True)
-  # res = proc.stdout
-  # print('STDOUT: {}'.format(res))
-
-  # proc = subprocess.run("/opt/arcoreimg", shell=True, stdout=PIPE, stderr=PIPE, text=True)
-  # res = proc.stdout
-  # err = proc.stderr
-  # print('STDOUT: {}'.format(res))
-  # print('STDERR: {}'.format(err))
-
 
 
