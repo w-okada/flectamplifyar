@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/activity_navigation"
+    app:startDestination="@id/ARFragment"
+    >
+
+    <fragment
+        android:id="@+id/ARFragment"
+        android:name="com.example.flectamplifyar.ui.ARFragment"
+        android:label="FirstFragment">
+
+        <action
+            android:id="@+id/action_first_to_second"
+            app:destination="@id/LoadMarkerFragment" />
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/LoadMarkerFragment"
+        android:name="com.example.flectamplifyar.ui.LoadMarkerFragment"
+        android:label="SecondFragment">
+
+        <action
+            android:id="@+id/action_second_to_third"
+            app:destination="@id/ARFragment" />
+
+    </fragment>
+
+</navigation>

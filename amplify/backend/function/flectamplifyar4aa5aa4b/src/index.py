@@ -56,8 +56,9 @@ def handler(event, context):
     print(f'STDOUT: {score}')
 
     # fileアップロード
-    new_file = f'public/marker/{sha1_hash}.jpg'
-    s3.Bucket(bucket).upload_file(dst_file, new_file)
+    new_file = f'marker/{sha1_hash}.jpg'
+    new_key = f'public/{new_file}'
+    s3.Bucket(bucket).upload_file(dst_file, new_key)
 
     # DynamoDB登録
     createAt = int(time.time())
@@ -66,8 +67,8 @@ def handler(event, context):
       'name'     : new_file,
       'score'    : score,
       'owner'    : "tbd",
-      'createAt' : createAt,
-      'updateAt' : createAt,
+      'createdAt' : createAt,
+      'updatedAt' : createAt,
     }
 
     marker_table_name = os.environ['API_FLECTAMPLIFYARGRAPH_MARKERTABLE_NAME']    
