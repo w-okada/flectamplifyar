@@ -79,7 +79,7 @@
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:layout_marginBottom="32dp"
-            app:layout_constraintBottom_toTopOf="@+id/editTextTextPersonName"
+            app:layout_constraintBottom_toTopOf="@+id/editTextMarkerName"
             app:layout_constraintEnd_toStartOf="@+id/guideline3"
             app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintStart_toStartOf="@+id/guideline2"
@@ -88,7 +88,7 @@
             app:srcCompat="?attr/selectableItemBackground" />
 
         <EditText
-            android:id="@+id/editTextTextPersonName"
+            android:id="@+id/editTextMarkerName"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="32dp"
@@ -109,7 +109,7 @@
             android:stateListAnimator="@null"
             android:text="Upload"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="@+id/editTextTextPersonName" />
+            app:layout_constraintStart_toStartOf="@+id/editTextMarkerName" />
 
         <Button
             android:id="@+id/cancelMarkerButton"
@@ -119,7 +119,7 @@
             android:stateListAnimator="@null"
             android:text="CANCEL"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="@+id/editTextTextPersonName" />
+            app:layout_constraintEnd_toEndOf="@+id/editTextMarkerName" />
 
         <ProgressBar
             android:id="@+id/waitUploadingProgressBar"
@@ -127,9 +127,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:visibility="invisible"
-            app:layout_constraintBottom_toTopOf="@+id/editTextTextPersonName"
-            app:layout_constraintEnd_toEndOf="@+id/editTextTextPersonName"
-            app:layout_constraintStart_toStartOf="@+id/editTextTextPersonName" />
+            app:layout_constraintBottom_toTopOf="@+id/editTextMarkerName"
+            app:layout_constraintEnd_toEndOf="@+id/editTextMarkerName"
+            app:layout_constraintStart_toStartOf="@+id/editTextMarkerName" />
 
         <TextView
             android:id="@+id/waitUploadingStatusText"
@@ -137,9 +137,9 @@
             android:layout_height="wrap_content"
             android:text="uploading"
             android:visibility="invisible"
-            app:layout_constraintBottom_toBottomOf="@+id/editTextTextPersonName"
-            app:layout_constraintEnd_toEndOf="@+id/editTextTextPersonName"
-            app:layout_constraintStart_toStartOf="@+id/editTextTextPersonName" />
+            app:layout_constraintBottom_toBottomOf="@+id/editTextMarkerName"
+            app:layout_constraintEnd_toEndOf="@+id/editTextMarkerName"
+            app:layout_constraintStart_toStartOf="@+id/editTextMarkerName" />
 
         <Button
             android:id="@+id/waitUploadingExitButton"

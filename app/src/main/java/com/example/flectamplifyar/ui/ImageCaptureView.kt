@@ -1,6 +1,5 @@
 package com.example.flectamplifyar.ui
 
-import android.app.Activity
 import android.content.Context
 import android.graphics.*
 import android.os.Handler
@@ -13,8 +12,6 @@ import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentContainerView
 import androidx.navigation.fragment.NavHostFragment
 import com.amplifyframework.api.graphql.model.ModelQuery
 import com.amplifyframework.api.rest.RestOptions
@@ -23,10 +20,7 @@ import com.amplifyframework.datastore.generated.model.Marker
 import com.amplifyframework.storage.s3.AWSS3StoragePlugin
 import com.example.flectamplifyar.App
 import com.example.flectamplifyar.R
-import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.android.synthetic.main.arfragment.*
 import kotlinx.android.synthetic.main.arfragment.view.*
-import kotlinx.android.synthetic.main.image_capture_view.*
 import kotlinx.android.synthetic.main.image_capture_view.view.*
 import java.io.File
 import java.util.*
@@ -97,7 +91,7 @@ class ImageCaptureView: ConstraintLayout {
                 mHandler
             )
 
-            editTextTextPersonName.visibility = View.VISIBLE
+            editTextMarkerName.visibility = View.VISIBLE
             uploadMarkerButton.visibility = View.VISIBLE
             cancelMarkerButton.visibility = View.VISIBLE
 
@@ -111,12 +105,12 @@ class ImageCaptureView: ConstraintLayout {
             imageCaptureView.visibility = View.INVISIBLE
         }
 
-        uploadMarkerButton.setOnClickListener({
+        uploadMarkerButton.setOnClickListener {
             val uuidString = UUID.randomUUID().toString()
-            uploadMarker(imageCaptureView2.bm!!, "${uuidString}.jpg")
+            uploadMarker(bm!!, "${uuidString}.jpg", editTextMarkerName.text.toString())
             waitUploadingStatusText.text = "uploading...."
 
-            editTextTextPersonName.visibility = View.INVISIBLE
+            editTextMarkerName.visibility = View.INVISIBLE
             uploadMarkerButton.visibility = View.INVISIBLE
             cancelMarkerButton.visibility = View.INVISIBLE
 
@@ -124,9 +118,9 @@ class ImageCaptureView: ConstraintLayout {
             waitUploadingProgressBar.visibility = View.VISIBLE
 
             uploadSucceeded = false
-        })
+        }
 
-        waitUploadingExitButton.setOnClickListener({
+        waitUploadingExitButton.setOnClickListener{
             markerCaptureConfirmLayout.visibility = View.INVISIBLE
             imageCaptureView.visibility = View.INVISIBLE
             waitUploadingExitButton.visibility = View.INVISIBLE
@@ -136,16 +130,14 @@ class ImageCaptureView: ConstraintLayout {
                 // https://issuetracker.google.com/issues/119800853
                 // https://stackoverflow.com/questions/58703451/fragmentcontainerview-as-navhostfragment
                 val arFragment = nav.childFragmentManager.primaryNavigationFragment
-                Log.e(TAG,"AAAAAAAAAAAAAAAAAAAAAA ${arFragment}")
                 (arFragment as ARFragment).setMarker(bm!!)
             }
-
-        })
+        }
     }
 
 
 
-    private fun uploadMarker(bm: Bitmap, filename: String){
+    private fun uploadMarker(bm: Bitmap, filename: String, title:String){
         val exampleFile = File(App.getApp().applicationContext.filesDir, "${filename}")
         bm.compress(Bitmap.CompressFormat.JPEG, 100, exampleFile.outputStream())
         val mHandler = Handler(Looper.getMainLooper());
@@ -157,13 +149,15 @@ class ImageCaptureView: ConstraintLayout {
             { result ->
                 Log.i("MyAmplifyApp", "Successfully uploaded: " + result.getKey())
                 try {
-                    val plugin =
-                        Amplify.Storage.getPlugin("awsS3StoragePlugin") as AWSS3StoragePlugin
+                    val plugin = Amplify.Storage.getPlugin("awsS3StoragePlugin") as AWSS3StoragePlugin
                     val body = "{" +
                             "\"bucket\":\"${plugin.bucketName}\", " +
                             "\"region\":\"${plugin.regionStr}\", " +
-                            "\"key\":\"${key}\" " +
+                            "\"key\":\"${key}\", " +
+                            "\"name\":\"${title}\" " +
                             "}"
+                    Log.e(TAG, "BODY !! ${body}")
+                    Log.e(TAG, "BODY !! ${title}")
                     val options: RestOptions = RestOptions.builder()
                         .addPath("/markers")
                         .addBody(body.toByteArray())
@@ -173,28 +167,28 @@ class ImageCaptureView: ConstraintLayout {
                         { response ->
                             Log.i("MyAmplifyApp", "POST " + response.data.asString())
                             val score = response.data.asJSONObject()["score"]
-                            mHandler.post({
+                            mHandler.post{
                                 waitUploadingStatusText.text = "upload image succeeded. Score: ${score}"
                                 waitUploadingExitButton.visibility = View.VISIBLE
                                 waitUploadingProgressBar.visibility = View.INVISIBLE
-                            })
+                            }
                             uploadSucceeded = true
                         },
                         { error ->
                             Log.e("MyAmplifyApp", "POST failed", error)
-                            mHandler.post({
+                            mHandler.post{
                                 waitUploadingStatusText.text = "analyzing image failed"
                                 waitUploadingExitButton.visibility = View.VISIBLE
                                 waitUploadingProgressBar.visibility = View.INVISIBLE
-                            })
+                            }
                         }
                     )
                 } catch (e: Exception) {
-                    mHandler.post({
+                    mHandler.post{
                         waitUploadingStatusText.text = "upload failed"
                         waitUploadingExitButton.visibility = View.VISIBLE
                         waitUploadingProgressBar.visibility = View.INVISIBLE
-                    })
+                    }
                     Log.e("---------------------------", " >  ${e}")
                 }
 

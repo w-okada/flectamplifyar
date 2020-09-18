@@ -6,21 +6,22 @@ import android.opengl.GLES20
 import android.opengl.Matrix
 import android.util.Log
 import android.view.Surface
+import android.view.View
 import com.example.flectamplifyar.helper.DepthSettings
 import com.example.flectamplifyar.helper.DisplayRotationHelper
 import com.example.flectamplifyar.rendering.*
-import com.google.ar.core.AugmentedImage
-import com.google.ar.core.Coordinates2d
-import com.google.ar.core.Frame
+import com.google.ar.core.*
 import com.uncorkedstudios.android.view.recordablesurfaceview.RecordableSurfaceView
+import kotlinx.android.synthetic.main.image_capture_view.*
+import kotlinx.android.synthetic.main.image_capture_view.view.*
 import java.io.IOException
 
 
 object ARFragmentSurfaceRenderer: RecordableSurfaceView.RendererCallbacks {
     private val TAG = ARFragmentSurfaceRenderer::class.java.simpleName
-
-
     private var calculateUVTransform = true
+    var anchor: Anchor? = null
+
 //    var captureNextFrame = false
 
     private lateinit var context: Context
@@ -108,41 +109,49 @@ object ARFragmentSurfaceRenderer: RecordableSurfaceView.RendererCallbacks {
             val camera = frame.camera
             val rotate = DisplayRotationHelper.getCameraSensorToDisplayRotation(session.cameraConfig.cameraId)
 
+            BackgroundRenderer.draw(frame, DepthSettings.depthColorVisualizationEnabled())
+
+            if (arFragment.imageCaptureView.visibility == View.VISIBLE){
+                return
+            }
+
+
             val updatedAugmentedImages = frame.getUpdatedTrackables(AugmentedImage::class.java)
             Log.e(TAG,"AUGMENTED IMAGE ${updatedAugmentedImages.size}")
             for(i in updatedAugmentedImages){
                 Log.e(TAG,"AUGMENTED IMAGE ${i.name}")
+                if(i.trackingState != TrackingState.TRACKING){
+                    Log.e(TAG, "not tracking!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+                    continue
+                }
+                if(i.trackingMethod != AugmentedImage.TrackingMethod.FULL_TRACKING){
+                    Log.e(TAG, "not !!FULL!! tracking!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+                    continue
+                }
+                if(anchor == null){
+                    anchor = session.createAnchor(i.centerPose)
+                }
+            }
 
+            if(anchor == null){3
+                Log.e(TAG,"no Anchor!!!!!")
+                return
+            }else{
+                Log.e(TAG,"Anchor!!!!! ${anchor!!.pose.tx()}, ${anchor!!.pose.ty()}, ${anchor!!.pose.tz()}")
             }
 
 
-//
-//            // Define Anchor
-//            val trackables = session!!.getAllTrackables(Plane::class.java)
-//            for(t in trackables){
-//                if(mAnchor === null){
-//                    mAnchor = session!!.createAnchor(camera.pose)
-//                    mAnchor!!.pose.toMatrix(LineShaderRenderer.mModelMatrix, 0)
-//                }
-//            }
-//
-//
             if (frame.hasDisplayGeometryChanged() || calculateUVTransform) {
-                // The UV Transform represents the transformation between screenspace in normalized units
-                // and screenspace in units of pixels.  Having the size of each pixel is necessary in the
-                // virtual object shader, to perform kernel-based blur effects.
                 calculateUVTransform = false
                 val transform: FloatArray = getTextureTransformMatrix(frame)
                 GLES.setUvTransformMatrix(transform)
-
             }
-//
+
 //            if (session!!.isDepthModeSupported(Config.DepthMode.AUTOMATIC)) {
 //                DepthTexture.updateWithDepthImageOnGlThread(frame)
 //            }
 //
 //            handleTap(frame, camera)
-            BackgroundRenderer.draw(frame, DepthSettings.depthColorVisualizationEnabled())
 //
 //            TrackingStateHelper.updateKeepScreenOnFlag(camera.trackingState)
 //            // If not tracking, don't draw 3D objects, show tracking failure reason instead.
@@ -154,11 +163,11 @@ object ARFragmentSurfaceRenderer: RecordableSurfaceView.RendererCallbacks {
 //            }
 //
 
-//            // Get projection&view matrix.
-//            val projmtx = FloatArray(16)
-//            val viewmtx = FloatArray(16)
-//            camera.getProjectionMatrix(projmtx, 0, 0.1f, 100.0f)
-//            camera.getViewMatrix(viewmtx, 0)
+            // Get projection&view matrix.
+            val projmtx = FloatArray(16)
+            val viewmtx = FloatArray(16)
+            camera.getProjectionMatrix(projmtx, 0, 0.1f, 100.0f)
+            camera.getViewMatrix(viewmtx, 0)
 //
 //            val colorCorrectionRgba = FloatArray(4)
 //            frame.lightEstimate.getColorCorrection(colorCorrectionRgba, 0)
@@ -242,36 +251,15 @@ object ARFragmentSurfaceRenderer: RecordableSurfaceView.RendererCallbacks {
 //            }
 
 //            if(StrokeProvider.mStrokes.size > 0){
-            if(true){
+            if(false){
                 GLES.useProgram()
 
                 val dummyFloat = FloatArray(1)
                 val dummyBuffer = BufferUtil.makeFloatBuffer(dummyFloat)
                 //シェーダのattribute属性の変数に値を設定していないと暴走するのでここでセットしておく。この位置でないといけない
-                GLES20.glVertexAttribPointer(
-                    GLES.positionHandle,
-                    3,
-                    GLES20.GL_FLOAT,
-                    false,
-                    0,
-                    dummyBuffer
-                )
-                GLES20.glVertexAttribPointer(
-                    GLES.normalHandle,
-                    3,
-                    GLES20.GL_FLOAT,
-                    false,
-                    0,
-                    dummyBuffer
-                )
-                GLES20.glVertexAttribPointer(
-                    GLES.texcoordHandle,
-                    2,
-                    GLES20.GL_FLOAT,
-                    false,
-                    0,
-                    dummyBuffer
-                )
+                GLES20.glVertexAttribPointer(GLES.positionHandle, 3, GLES20.GL_FLOAT, false, 0, dummyBuffer)
+                GLES20.glVertexAttribPointer(GLES.normalHandle, 3, GLES20.GL_FLOAT, false, 0, dummyBuffer)
+                GLES20.glVertexAttribPointer(GLES.texcoordHandle, 2, GLES20.GL_FLOAT, false, 0, dummyBuffer)
 
 
 
@@ -281,16 +269,57 @@ object ARFragmentSurfaceRenderer: RecordableSurfaceView.RendererCallbacks {
                 val mMatrix = FloatArray(16) //モデル変換マトリックス
                 val aMatrix = FloatArray(16) //モデル変換マトリックス
                 Matrix.setIdentityM(aMatrix, 0)
-                Matrix.setIdentityM(mMatrix, 0)
-
-                GLES.setPMatrix(mMatrix)
-                GLES.setCMatrix(mMatrix)
+//                Matrix.setIdentityM(mMatrix, 0)
+                anchor!!.pose.toMatrix(aMatrix,0)
+                GLES.setPMatrix(projmtx)
+                GLES.setCMatrix(viewmtx)
 
                 Matrix.setIdentityM(mMatrix, 0)
                 Matrix.translateM(mMatrix, 0, 0.5f, 0.1f, -0.3f)
                 GLES.updateMatrix(mMatrix, aMatrix)
                 TrianglTexture.draw(0.5f, .1f, 1.0f, 0.5f, 0.0f)
             }
+
+
+            for(i in updatedAugmentedImages){
+//                if(i.trackingState != TrackingState.TRACKING){
+//                    Log.e(TAG, "not tracking!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+//                    continue
+//                }
+//                if(i.trackingMethod != AugmentedImage.TrackingMethod.FULL_TRACKING){
+//                    Log.e(TAG, "not !!FULL!! tracking!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+//                    continue
+//                }
+                GLES.useProgram()
+
+                val dummyFloat = FloatArray(1)
+                val dummyBuffer = BufferUtil.makeFloatBuffer(dummyFloat)
+                //シェーダのattribute属性の変数に値を設定していないと暴走するのでここでセットしておく。この位置でないといけない
+                GLES20.glVertexAttribPointer(GLES.positionHandle, 3, GLES20.GL_FLOAT, false, 0, dummyBuffer)
+                GLES20.glVertexAttribPointer(GLES.normalHandle, 3, GLES20.GL_FLOAT, false, 0, dummyBuffer)
+                GLES20.glVertexAttribPointer(GLES.texcoordHandle, 2, GLES20.GL_FLOAT, false, 0, dummyBuffer)
+
+
+
+                GLES.disableShading()
+                GLES.enableTexture()
+                //変換マトリックス
+                val mMatrix = FloatArray(16) //モデル変換マトリックス
+                val aMatrix = FloatArray(16) //モデル変換マトリックス
+                Matrix.setIdentityM(aMatrix, 0)
+//                Matrix.setIdentityM(mMatrix, 0)
+//                i.centerPose.toMatrix(aMatrix,0)
+                anchor!!.pose.toMatrix(aMatrix,0)
+                Log.e(TAG,"center!!!!! ${aMatrix}")
+                GLES.setPMatrix(projmtx)
+                GLES.setCMatrix(viewmtx)
+
+                Matrix.setIdentityM(mMatrix, 0)
+//                Matrix.translateM(mMatrix, 0, 0.5f, 0.1f, -0.3f)
+                GLES.updateMatrix(mMatrix, aMatrix)
+                TrianglTexture.draw(0.5f, .1f, 1.0f, 0.5f, 0.0f)
+            }
+
 
         } catch (t: Throwable) {
             Log.e(TAG, "Exception on the OpenGL thread", t)

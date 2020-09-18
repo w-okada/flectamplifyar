@@ -37,7 +37,8 @@ def handler(event, context):
     body = json.loads(event["body"])
     bucket = body["bucket"]
     region = body["region"]
-    key = body["key"]
+    key    = body["key"]
+    name   = body["name"]
     
 
     # ファイルのダウンロード
@@ -64,7 +65,8 @@ def handler(event, context):
     createAt = int(time.time())
     item = {
       'id'       : sha1_hash,
-      'name'     : new_file,
+      'name'     : name,
+      'path'     : new_file,
       'score'    : score,
       'owner'    : "tbd",
       'createdAt' : createAt,

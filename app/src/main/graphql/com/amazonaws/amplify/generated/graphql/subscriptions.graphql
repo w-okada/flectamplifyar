@@ -1,0 +1,163 @@
+# this is an auto generated file. This will be overwritten
+subscription OnCreateMarker {
+  onCreateMarker {
+    id
+    score
+    name
+    path
+    owner
+    canvases {
+      nextToken
+    }
+    createdAt
+    updatedAt
+  }
+}
+subscription OnUpdateMarker {
+  onUpdateMarker {
+    id
+    score
+    name
+    path
+    owner
+    canvases {
+      nextToken
+    }
+    createdAt
+    updatedAt
+  }
+}
+subscription OnDeleteMarker {
+  onDeleteMarker {
+    id
+    score
+    name
+    path
+    owner
+    canvases {
+      nextToken
+    }
+    createdAt
+    updatedAt
+  }
+}
+subscription OnCreateCanvas {
+  onCreateCanvas {
+    id
+    title
+    owner
+    markerID
+    marker {
+      id
+      score
+      name
+      path
+      owner
+      createdAt
+      updatedAt
+    }
+    elements {
+      nextToken
+    }
+    createdAt
+    updatedAt
+  }
+}
+subscription OnUpdateCanvas {
+  onUpdateCanvas {
+    id
+    title
+    owner
+    markerID
+    marker {
+      id
+      score
+      name
+      path
+      owner
+      createdAt
+      updatedAt
+    }
+    elements {
+      nextToken
+    }
+    createdAt
+    updatedAt
+  }
+}
+subscription OnDeleteCanvas {
+  onDeleteCanvas {
+    id
+    title
+    owner
+    markerID
+    marker {
+      id
+      score
+      name
+      path
+      owner
+      createdAt
+      updatedAt
+    }
+    elements {
+      nextToken
+    }
+    createdAt
+    updatedAt
+  }
+}
+subscription OnCreateElement {
+  onCreateElement {
+    id
+    owner
+    canvasID
+    canvas {
+      id
+      title
+      owner
+      markerID
+      createdAt
+      updatedAt
+    }
+    content
+    createdAt
+    updatedAt
+  }
+}
+subscription OnUpdateElement {
+  onUpdateElement {
+    id
+    owner
+    canvasID
+    canvas {
+      id
+      title
+      owner
+      markerID
+      createdAt
+      updatedAt
+    }
+    content
+    createdAt
+    updatedAt
+  }
+}
+subscription OnDeleteElement {
+  onDeleteElement {
+    id
+    owner
+    canvasID
+    canvas {
+      id
+      title
+      owner
+      markerID
+      createdAt
+      updatedAt
+    }
+    content
+    createdAt
+    updatedAt
+  }
+}

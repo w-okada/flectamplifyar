@@ -1,0 +1,107 @@
+# this is an auto generated file. This will be overwritten
+query GetMarker($id: ID!) {
+  getMarker(id: $id) {
+    id
+    score
+    name
+    path
+    owner
+    canvases {
+      nextToken
+    }
+    createdAt
+    updatedAt
+  }
+}
+query ListMarkers(
+  $filter: ModelMarkerFilterInput
+  $limit: Int
+  $nextToken: String
+) {
+  listMarkers(filter: $filter, limit: $limit, nextToken: $nextToken) {
+    items {
+      id
+      score
+      name
+      path
+      owner
+      createdAt
+      updatedAt
+    }
+    nextToken
+  }
+}
+query GetCanvas($id: ID!) {
+  getCanvas(id: $id) {
+    id
+    title
+    owner
+    markerID
+    marker {
+      id
+      score
+      name
+      path
+      owner
+      createdAt
+      updatedAt
+    }
+    elements {
+      nextToken
+    }
+    createdAt
+    updatedAt
+  }
+}
+query ListCanvass(
+  $filter: ModelCanvasFilterInput
+  $limit: Int
+  $nextToken: String
+) {
+  listCanvass(filter: $filter, limit: $limit, nextToken: $nextToken) {
+    items {
+      id
+      title
+      owner
+      markerID
+      createdAt
+      updatedAt
+    }
+    nextToken
+  }
+}
+query GetElement($id: ID!) {
+  getElement(id: $id) {
+    id
+    owner
+    canvasID
+    canvas {
+      id
+      title
+      owner
+      markerID
+      createdAt
+      updatedAt
+    }
+    content
+    createdAt
+    updatedAt
+  }
+}
+query ListElements(
+  $filter: ModelElementFilterInput
+  $limit: Int
+  $nextToken: String
+) {
+  listElements(filter: $filter, limit: $limit, nextToken: $nextToken) {
+    items {
+      id
+      owner
+      canvasID
+      content
+      createdAt
+      updatedAt
+    }
+    nextToken
+  }
+}

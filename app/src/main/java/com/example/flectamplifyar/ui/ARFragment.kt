@@ -16,6 +16,8 @@ import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.navigation.Navigation.findNavController
+import androidx.navigation.fragment.findNavController
 import com.amplifyframework.AmplifyException
 import com.amplifyframework.api.aws.AWSApiPlugin
 import com.amplifyframework.api.graphql.model.ModelQuery
@@ -33,10 +35,7 @@ import com.example.flectamplifyar.helper.CameraPermissionHelper
 import com.example.flectamplifyar.helper.DisplayRotationHelper
 import com.example.flectamplifyar.helper.SnackbarHelper.showError
 import com.example.flectamplifyar.helper.TapHelper
-import com.google.ar.core.ArCoreApk
-import com.google.ar.core.AugmentedImageDatabase
-import com.google.ar.core.Config
-import com.google.ar.core.Session
+import com.google.ar.core.*
 import com.google.ar.core.exceptions.*
 import kotlinx.android.synthetic.main.arfragment.*
 import kotlinx.android.synthetic.main.arfragment.view.*
@@ -82,61 +81,6 @@ class ARFragment(): Fragment(){
 
         rSurfaceView.rendererCallbacks = ARFragmentSurfaceRenderer
         ARFragmentSurfaceRenderer.setup(this)
-
-
-        captureMarkerButton.setOnClickListener(object:View.OnClickListener{
-            override fun onClick(p0: View?) {
-                showMenuButton.text = requireContext().getString(R.string.menu_button_text_enter)
-                menuView.visibility = View.INVISIBLE
-                imageCaptureView.visibility = View.VISIBLE
-
-            }
-        })
-
-
-
-        // Amplify Initialization
-//        try {
-//            Log.i("MyAmplifyApp", "Initialized Amplify")
-//
-//            Amplify.addPlugin(AWSCognitoAuthPlugin())
-//            Amplify.addPlugin(AWSS3StoragePlugin())
-//            Amplify.addPlugin(AWSApiPlugin())
-//            Amplify.configure(App.getApp().applicationContext)
-////
-//
-//            Amplify.Auth.fetchAuthSession(
-//                { result -> Log.i("AuthQuickStart1", result.toString()) },
-//                { error -> Log.e("AuthQuickStart1", error.toString()) }
-//            )
-//
-////            Amplify.Auth.signIn(
-////                "Aaaaa",
-////                "12345678",
-////                { result -> Log.i("AuthQuickstart", if (result.isSignInComplete) "Sign in succeeded" else "Sign in not complete") },
-////                { error -> Log.e("AuthQuickstart", error.toString()) }
-////            )
-//
-//
-//            Amplify.Auth.signInWithWebUI(
-//                requireActivity(),
-//                { result -> Log.i("AuthQuickStart2", result.toString()) },
-//                { error -> Log.e("AuthQuickStart2", error.toString()) }
-//            )
-//
-//        } catch (error: AmplifyException) {
-//            Log.e("AuthQuickStart", "Could not initialize Amplify ${error.toString()}" )
-//        }
-
-        sighOutButton.setOnClickListener{
-            Amplify.Auth.signOut(
-                { Log.i("AuthQuickstart", "Signed out successfully") },
-                { error -> Log.e("AuthQuickstart", error.toString()) }
-            )
-            requireActivity().finish()
-        }
-
-
     }
 
 
@@ -329,15 +273,6 @@ class ARFragment(): Fragment(){
     }
 
 
-//    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-//        super.onActivityResult(requestCode, resultCode, data)
-//
-//        if (requestCode == AWSCognitoAuthPlugin.WEB_UI_SIGN_IN_ACTIVITY_CODE) {
-//            Amplify.Auth.handleWebUISignInResponse(data)
-//        }
-//    }
-//
-
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, results: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, results)
         if (!CameraPermissionHelper.hasCameraPermission(requireActivity())) {
@@ -356,9 +291,10 @@ class ARFragment(): Fragment(){
         Log.e(TAG, "setBM!!!!!!!!!!!!!!!")
         val config = session!!.getConfig()
         imageDatabase = AugmentedImageDatabase(session)
-        imageDatabase.addImage("mmm_${session!!.config.augmentedImageDatabase.numImages}",bm)
+        imageDatabase.addImage("mmm_${session!!.config.augmentedImageDatabase.numImages}",bm, 0.1f)
         config.augmentedImageDatabase = imageDatabase
         session!!.configure(config)
+        ARFragmentSurfaceRenderer.anchor = null
     }
 
 

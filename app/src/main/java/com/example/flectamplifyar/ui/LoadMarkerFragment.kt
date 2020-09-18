@@ -12,6 +12,7 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.constraintlayout.widget.ConstraintSet
 import androidx.fragment.app.Fragment
 import com.example.flectamplifyar.R
+import kotlinx.android.synthetic.main.load_marker_fragment.*
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 
@@ -33,9 +34,12 @@ class LoadMarkerFragment(): Fragment(), GLSurfaceView.Renderer{
 
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle? ): View {
+        return inflater.inflate(R.layout.load_marker_fragment, container, false)
+    }
 
-
-        return rootLayout
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        loadMarkerSpinner.setMarkerList()
     }
 
     override fun onSurfaceCreated(p0: GL10?, p1: EGLConfig?) {

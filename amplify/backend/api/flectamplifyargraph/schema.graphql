@@ -13,6 +13,7 @@ type Marker @model{
   id: ID!
   score: Int!
   name: String!
+  path: String!
   owner: String!
   canvases: [Canvas] @connection(keyName: "byMarker", fields: ["id"])
 }
@@ -34,3 +35,5 @@ type Element @model @key(name: "byCanvas", fields: ["canvasID"]) {
   canvas: Canvas @connection(fields: ["canvasID"])
   content: String!
 }
+
+

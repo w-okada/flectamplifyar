@@ -29,8 +29,8 @@ class MarkerSpinnerAdapter internal constructor(
         if (convertView == null) {
             convertView = inflater.inflate(R.layout.marker_spinner, null)
             holder = ViewHolder()
-            holder.imageView =convertView.image_view
-            holder.textView = convertView.text_view
+            holder.imageView =convertView.marker_image_view
+            holder.textView = convertView.marker_text_view
             convertView.tag = holder
         } else {
             holder = convertView.tag as ViewHolder
