@@ -81,6 +81,7 @@ class ARFragment(): Fragment(){
 
         rSurfaceView.rendererCallbacks = ARFragmentSurfaceRenderer
         ARFragmentSurfaceRenderer.setup(this)
+        rSurfaceView.setOnTouchListener(TapHelper)
     }
 
 
@@ -179,6 +180,7 @@ class ARFragment(): Fragment(){
 
 
     override fun onResume() {
+        Log.e(TAG,"onResume!")
         super.onResume()
         if (session == null) {
             var exception: Exception? = null
@@ -222,6 +224,10 @@ class ARFragment(): Fragment(){
 
                 CameraConfigHelper.setup(session)
                 session!!.cameraConfig = CameraConfigHelper.getCurrentCameraConfig()
+
+                if(App.getApp().marker != null){
+                    setMarker(App.getApp().marker!!)
+                }
 
             } catch (e: UnavailableArcoreNotInstalledException) {
                 message = "Please install ARCore"

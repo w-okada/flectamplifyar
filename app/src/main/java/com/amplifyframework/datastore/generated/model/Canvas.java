@@ -24,9 +24,11 @@ import static com.amplifyframework.core.model.query.predicate.QueryField.field;
 public final class Canvas implements Model {
   public static final QueryField ID = field("id");
   public static final QueryField TITLE = field("title");
+  public static final QueryField OWNER = field("owner");
   public static final QueryField MARKER = field("markerID");
   private final @ModelField(targetType="ID", isRequired = true) String id;
   private final @ModelField(targetType="String", isRequired = true) String title;
+  private final @ModelField(targetType="String", isRequired = true) String owner;
   private final @ModelField(targetType="Marker") @BelongsTo(targetName = "markerID", type = Marker.class) Marker marker;
   private final @ModelField(targetType="Element") @HasMany(associatedWith = "canvas", type = Element.class) List<Element> elements = null;
   public String getId() {
@@ -37,6 +39,10 @@ public final class Canvas implements Model {
       return title;
   }
   
+  public String getOwner() {
+      return owner;
+  }
+  
   public Marker getMarker() {
       return marker;
   }
@@ -45,9 +51,10 @@ public final class Canvas implements Model {
       return elements;
   }
   
-  private Canvas(String id, String title, Marker marker) {
+  private Canvas(String id, String title, String owner, Marker marker) {
     this.id = id;
     this.title = title;
+    this.owner = owner;
     this.marker = marker;
   }
   
@@ -61,6 +68,7 @@ public final class Canvas implements Model {
       Canvas canvas = (Canvas) obj;
       return ObjectsCompat.equals(getId(), canvas.getId()) &&
               ObjectsCompat.equals(getTitle(), canvas.getTitle()) &&
+              ObjectsCompat.equals(getOwner(), canvas.getOwner()) &&
               ObjectsCompat.equals(getMarker(), canvas.getMarker());
       }
   }
@@ -70,6 +78,7 @@ public final class Canvas implements Model {
     return new StringBuilder()
       .append(getId())
       .append(getTitle())
+      .append(getOwner())
       .append(getMarker())
       .toString()
       .hashCode();
@@ -81,6 +90,7 @@ public final class Canvas implements Model {
       .append("Canvas {")
       .append("id=" + String.valueOf(getId()) + ", ")
       .append("title=" + String.valueOf(getTitle()) + ", ")
+      .append("owner=" + String.valueOf(getOwner()) + ", ")
       .append("marker=" + String.valueOf(getMarker()))
       .append("}")
       .toString();
@@ -112,6 +122,7 @@ public final class Canvas implements Model {
     return new Canvas(
       id,
       null,
+      null,
       null
     );
   }
@@ -119,10 +130,16 @@ public final class Canvas implements Model {
   public CopyOfBuilder copyOfBuilder() {
     return new CopyOfBuilder(id,
       title,
+      owner,
       marker);
   }
   public interface TitleStep {
-    BuildStep title(String title);
+    OwnerStep title(String title);
+  }
+  
+
+  public interface OwnerStep {
+    BuildStep owner(String owner);
   }
   
 
@@ -133,9 +150,10 @@ public final class Canvas implements Model {
   }
   
 
-  public static class Builder implements TitleStep, BuildStep {
+  public static class Builder implements TitleStep, OwnerStep, BuildStep {
     private String id;
     private String title;
+    private String owner;
     private Marker marker;
     @Override
      public Canvas build() {
@@ -144,13 +162,21 @@ public final class Canvas implements Model {
         return new Canvas(
           id,
           title,
+          owner,
           marker);
     }
     
     @Override
-     public BuildStep title(String title) {
+     public OwnerStep title(String title) {
         Objects.requireNonNull(title);
         this.title = title;
+        return this;
+    }
+    
+    @Override
+     public BuildStep owner(String owner) {
+        Objects.requireNonNull(owner);
+        this.owner = owner;
         return this;
     }
     
@@ -183,15 +209,21 @@ public final class Canvas implements Model {
   
 
   public final class CopyOfBuilder extends Builder {
-    private CopyOfBuilder(String id, String title, Marker marker) {
+    private CopyOfBuilder(String id, String title, String owner, Marker marker) {
       super.id(id);
       super.title(title)
+        .owner(owner)
         .marker(marker);
     }
     
     @Override
      public CopyOfBuilder title(String title) {
       return (CopyOfBuilder) super.title(title);
+    }
+    
+    @Override
+     public CopyOfBuilder owner(String owner) {
+      return (CopyOfBuilder) super.owner(owner);
     }
     
     @Override

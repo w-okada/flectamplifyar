@@ -22,13 +22,19 @@ import static com.amplifyframework.core.model.query.predicate.QueryField.field;
 @Index(name = "byCanvas", fields = {"canvasID"})
 public final class Element implements Model {
   public static final QueryField ID = field("id");
+  public static final QueryField OWNER = field("owner");
   public static final QueryField CANVAS = field("canvasID");
   public static final QueryField CONTENT = field("content");
   private final @ModelField(targetType="ID", isRequired = true) String id;
+  private final @ModelField(targetType="String", isRequired = true) String owner;
   private final @ModelField(targetType="Canvas") @BelongsTo(targetName = "canvasID", type = Canvas.class) Canvas canvas;
   private final @ModelField(targetType="String", isRequired = true) String content;
   public String getId() {
       return id;
+  }
+  
+  public String getOwner() {
+      return owner;
   }
   
   public Canvas getCanvas() {
@@ -39,8 +45,9 @@ public final class Element implements Model {
       return content;
   }
   
-  private Element(String id, Canvas canvas, String content) {
+  private Element(String id, String owner, Canvas canvas, String content) {
     this.id = id;
+    this.owner = owner;
     this.canvas = canvas;
     this.content = content;
   }
@@ -54,6 +61,7 @@ public final class Element implements Model {
       } else {
       Element element = (Element) obj;
       return ObjectsCompat.equals(getId(), element.getId()) &&
+              ObjectsCompat.equals(getOwner(), element.getOwner()) &&
               ObjectsCompat.equals(getCanvas(), element.getCanvas()) &&
               ObjectsCompat.equals(getContent(), element.getContent());
       }
@@ -63,6 +71,7 @@ public final class Element implements Model {
    public int hashCode() {
     return new StringBuilder()
       .append(getId())
+      .append(getOwner())
       .append(getCanvas())
       .append(getContent())
       .toString()
@@ -74,13 +83,14 @@ public final class Element implements Model {
     return new StringBuilder()
       .append("Element {")
       .append("id=" + String.valueOf(getId()) + ", ")
+      .append("owner=" + String.valueOf(getOwner()) + ", ")
       .append("canvas=" + String.valueOf(getCanvas()) + ", ")
       .append("content=" + String.valueOf(getContent()))
       .append("}")
       .toString();
   }
   
-  public static ContentStep builder() {
+  public static OwnerStep builder() {
       return new Builder();
   }
   
@@ -106,15 +116,22 @@ public final class Element implements Model {
     return new Element(
       id,
       null,
+      null,
       null
     );
   }
   
   public CopyOfBuilder copyOfBuilder() {
     return new CopyOfBuilder(id,
+      owner,
       canvas,
       content);
   }
+  public interface OwnerStep {
+    ContentStep owner(String owner);
+  }
+  
+
   public interface ContentStep {
     BuildStep content(String content);
   }
@@ -127,8 +144,9 @@ public final class Element implements Model {
   }
   
 
-  public static class Builder implements ContentStep, BuildStep {
+  public static class Builder implements OwnerStep, ContentStep, BuildStep {
     private String id;
+    private String owner;
     private String content;
     private Canvas canvas;
     @Override
@@ -137,8 +155,16 @@ public final class Element implements Model {
         
         return new Element(
           id,
+          owner,
           canvas,
           content);
+    }
+    
+    @Override
+     public ContentStep owner(String owner) {
+        Objects.requireNonNull(owner);
+        this.owner = owner;
+        return this;
     }
     
     @Override
@@ -177,10 +203,16 @@ public final class Element implements Model {
   
 
   public final class CopyOfBuilder extends Builder {
-    private CopyOfBuilder(String id, Canvas canvas, String content) {
+    private CopyOfBuilder(String id, String owner, Canvas canvas, String content) {
       super.id(id);
-      super.content(content)
+      super.owner(owner)
+        .content(content)
         .canvas(canvas);
+    }
+    
+    @Override
+     public CopyOfBuilder owner(String owner) {
+      return (CopyOfBuilder) super.owner(owner);
     }
     
     @Override

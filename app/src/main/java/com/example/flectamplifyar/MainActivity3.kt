@@ -205,40 +205,7 @@ import javax.vecmath.Vector3f
 //
 
 //
-//    private fun convertWorldCordPoint(touchPoint: Vector2f, frame: Frame, camera: Camera): Vector3f {
-//        val projmtx = FloatArray(16)
-//        camera.getProjectionMatrix(projmtx, 0, 0.1f, 100.0f)
-//        val viewmtx = FloatArray(16)
-//        camera.getViewMatrix(viewmtx, 0)
-//        return  LineUtils.getWorldCoords(touchPoint, mScreenWidth, mScreenHeight, projmtx, viewmtx)
-//    }
-//
-//    private val mSharedStrokes: MutableMap<String, Stroke> = HashMap() // pair-partner's stroke
-//    private fun handleTap(frame: Frame, camera: Camera) {
-//        val tap = TapHelper.poll()
-////        Log.e("-----TAP:::", "tapinfo: ${tap.toString()}")
-//
-//        if(tap !== null){
-//            val mLastTouch = Vector2f(tap.x, tap.y)
-//            //addPoint2f(mLastTouch, frame, camera)
-//            var point = convertWorldCordPoint(mLastTouch, frame, camera)
-//            if (mAnchor != null && mAnchor!!.trackingState == TrackingState.TRACKING) {
-//                point = LineUtils.transformPointToPose(point, mAnchor!!.getPose())
-//                StrokeProvider.addNewEvent(tap, point)
-//            }
-//        }
-//
-//        if(StrokeProvider.mStrokes.size >0) {
-//            LineShaderRenderer.setColor(AppSettings.color)
-//            LineShaderRenderer.mDrawDistance = AppSettings.strokeDrawDistance
-//            val distanceScale = 1.0f
-//            LineShaderRenderer.setDistanceScale(distanceScale)
-//            LineShaderRenderer.setLineWidth(0.33f)
-//            LineShaderRenderer.clear()
-//            LineShaderRenderer.updateStrokes(StrokeProvider.mStrokes, mSharedStrokes) // pair-partner's stroke
-//            LineShaderRenderer.upload()
-//        }
-//    }
+
 //
 //
 //

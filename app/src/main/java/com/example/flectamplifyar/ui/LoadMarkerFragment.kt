@@ -1,6 +1,7 @@
 package com.example.flectamplifyar.ui
 
 import android.content.Context
+import android.graphics.Bitmap
 import android.opengl.GLSurfaceView
 import android.os.Bundle
 import android.util.AttributeSet
@@ -8,15 +9,22 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.constraintlayout.widget.ConstraintSet
+import androidx.core.view.get
 import androidx.fragment.app.Fragment
+import androidx.navigation.findNavController
+import androidx.navigation.fragment.NavHostFragment
+import androidx.navigation.fragment.findNavController
+import com.example.flectamplifyar.App
 import com.example.flectamplifyar.R
 import kotlinx.android.synthetic.main.load_marker_fragment.*
+import kotlinx.android.synthetic.main.marker_spinner.*
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 
-class LoadMarkerFragment(): Fragment(), GLSurfaceView.Renderer{
+class LoadMarkerFragment(): Fragment(){
+    private var bm: Bitmap? = null
     companion object {
         private val TAG: String = LoadMarkerFragment::class.java.getSimpleName()
     }
@@ -39,19 +47,28 @@ class LoadMarkerFragment(): Fragment(), GLSurfaceView.Renderer{
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        loadMarkerSpinner.setMarkerList()
+
+        loadMarkerListView.setOnItemClickListener{ adapterView, view, i, l ->
+            //Log.e("-----", "${i} ${l} ${adapterView.adapter.getItem(i)}")
+            val state = adapterView.adapter.getItem(i) as LoadMarkerSpinnerItemState
+            loadMarkerImageView.setImageBitmap(state.bm)
+            loadMarkerTextView.text = "${state.name}[${state.score}]"
+            loadMarkerSelectButton.visibility = View.VISIBLE
+            bm = state.bm
+        }
+
+        loadMarkerSelectButton.setOnClickListener{
+            App.getApp().marker = bm
+            findNavController().navigate(R.id.action_second_to_first)
+        }
+
+        loadMarkerRefreshButton.setOnClickListener{
+            loadMarkerListView.queryMarkers()
+        }
+
+
+//
     }
 
-    override fun onSurfaceCreated(p0: GL10?, p1: EGLConfig?) {
-//        TODO("Not yet implemented")
-    }
-
-    override fun onSurfaceChanged(p0: GL10?, p1: Int, p2: Int) {
-//        TODO("Not yet implemented")
-    }
-
-    override fun onDrawFrame(p0: GL10?) {
-//        TODO("Not yet implemented")
-    }
 
 }

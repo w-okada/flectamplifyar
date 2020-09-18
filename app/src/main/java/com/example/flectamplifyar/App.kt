@@ -2,6 +2,7 @@ package com.example.flectamplifyar
 
 import android.app.Application
 import android.content.Context
+import android.graphics.Bitmap
 import android.net.ConnectivityManager
 
 class App : Application() {
@@ -17,6 +18,9 @@ class App : Application() {
                 return activeNetwork != null && activeNetwork.isConnectedOrConnecting
             }
     }
+
+    var marker: Bitmap? = null
+
 
     init {
         instance = this

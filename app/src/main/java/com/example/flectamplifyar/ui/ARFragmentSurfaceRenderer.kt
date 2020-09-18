@@ -7,20 +7,32 @@ import android.opengl.Matrix
 import android.util.Log
 import android.view.Surface
 import android.view.View
+import com.example.flectamplifyar.AppSettings
 import com.example.flectamplifyar.helper.DepthSettings
 import com.example.flectamplifyar.helper.DisplayRotationHelper
+import com.example.flectamplifyar.helper.TapHelper
+import com.example.flectamplifyar.helper.TrackingStateHelper
+import com.example.flectamplifyar.model.Stroke
+import com.example.flectamplifyar.model.StrokeProvider
 import com.example.flectamplifyar.rendering.*
 import com.google.ar.core.*
 import com.uncorkedstudios.android.view.recordablesurfaceview.RecordableSurfaceView
 import kotlinx.android.synthetic.main.image_capture_view.*
 import kotlinx.android.synthetic.main.image_capture_view.view.*
 import java.io.IOException
+import javax.microedition.khronos.opengles.GL10
+import javax.vecmath.Vector2f
+import javax.vecmath.Vector3f
 
 
 object ARFragmentSurfaceRenderer: RecordableSurfaceView.RendererCallbacks {
     private val TAG = ARFragmentSurfaceRenderer::class.java.simpleName
     private var calculateUVTransform = true
     var anchor: Anchor? = null
+
+    private var mScreenWidth  = 0.0f
+    private var mScreenHeight = 0.0f
+
 
 //    var captureNextFrame = false
 
@@ -42,7 +54,13 @@ object ARFragmentSurfaceRenderer: RecordableSurfaceView.RendererCallbacks {
 //            rotation = Surface.ROTATION_90
 //        }
         arFragment.session!!.setDisplayGeometry(rotation, width, height)
+        mScreenWidth = width.toFloat()
+        mScreenHeight = height.toFloat()
+        GLES20.glViewport(0, 0, width, height)
     }
+
+
+
 
     override fun onSurfaceDestroyed() {
 //        mBackgroundRenderer.clearGL()
@@ -117,15 +135,15 @@ object ARFragmentSurfaceRenderer: RecordableSurfaceView.RendererCallbacks {
 
 
             val updatedAugmentedImages = frame.getUpdatedTrackables(AugmentedImage::class.java)
-            Log.e(TAG,"AUGMENTED IMAGE ${updatedAugmentedImages.size}")
+//            Log.e(TAG,"AUGMENTED IMAGE ${updatedAugmentedImages.size}")
             for(i in updatedAugmentedImages){
-                Log.e(TAG,"AUGMENTED IMAGE ${i.name}")
+//                Log.e(TAG,"AUGMENTED IMAGE ${i.name}")
                 if(i.trackingState != TrackingState.TRACKING){
-                    Log.e(TAG, "not tracking!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+//                    Log.e(TAG, "not tracking!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
                     continue
                 }
                 if(i.trackingMethod != AugmentedImage.TrackingMethod.FULL_TRACKING){
-                    Log.e(TAG, "not !!FULL!! tracking!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+//                    Log.e(TAG, "not !!FULL!! tracking!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
                     continue
                 }
                 if(anchor == null){
@@ -133,11 +151,11 @@ object ARFragmentSurfaceRenderer: RecordableSurfaceView.RendererCallbacks {
                 }
             }
 
-            if(anchor == null){3
-                Log.e(TAG,"no Anchor!!!!!")
+            if(anchor == null){
+//                Log.e(TAG,"no Anchor!!!!!")
                 return
             }else{
-                Log.e(TAG,"Anchor!!!!! ${anchor!!.pose.tx()}, ${anchor!!.pose.ty()}, ${anchor!!.pose.tz()}")
+//                Log.e(TAG,"Anchor!!!!! ${anchor!!.pose.tx()}, ${anchor!!.pose.ty()}, ${anchor!!.pose.tz()}")
             }
 
 
@@ -151,9 +169,9 @@ object ARFragmentSurfaceRenderer: RecordableSurfaceView.RendererCallbacks {
 //                DepthTexture.updateWithDepthImageOnGlThread(frame)
 //            }
 //
-//            handleTap(frame, camera)
+            handleTap(frame, camera)
 //
-//            TrackingStateHelper.updateKeepScreenOnFlag(camera.trackingState)
+            TrackingStateHelper.updateKeepScreenOnFlag(camera.trackingState)
 //            // If not tracking, don't draw 3D objects, show tracking failure reason instead.
 //            if (camera.trackingState == TrackingState.PAUSED) {
 //                SnackbarHelper.showMessage(
@@ -169,8 +187,8 @@ object ARFragmentSurfaceRenderer: RecordableSurfaceView.RendererCallbacks {
             camera.getProjectionMatrix(projmtx, 0, 0.1f, 100.0f)
             camera.getViewMatrix(viewmtx, 0)
 //
-//            val colorCorrectionRgba = FloatArray(4)
-//            frame.lightEstimate.getColorCorrection(colorCorrectionRgba, 0)
+            val colorCorrectionRgba = FloatArray(4)
+            frame.lightEstimate.getColorCorrection(colorCorrectionRgba, 0)
 //
 //            if (hasTrackingPlane()) {
 //                SnackbarHelper.hide(this)
@@ -178,77 +196,49 @@ object ARFragmentSurfaceRenderer: RecordableSurfaceView.RendererCallbacks {
 //                SnackbarHelper.showMessage(this, SEARCHING_PLANE_MESSAGE)
 //            }
 //
-//            if(StrokeProvider.mStrokes.size>0){
-//                LineShaderRenderer.draw(
-//                    viewmtx, projmtx, mScreenWidth, mScreenHeight,
-//                    AppSettings.nearClip, AppSettings.farClip
-//                )
-//            }
+            if(StrokeProvider.mStrokes.size>0){
+                Log.e(TAG,"Stroke size : ${StrokeProvider.mStrokes.size} ${mScreenWidth} ${mScreenHeight}")
+                anchor!!.pose.toMatrix(LineShaderRenderer.mModelMatrix, 0)
+                LineShaderRenderer.draw(viewmtx, projmtx, mScreenWidth, mScreenHeight, AppSettings.nearClip, AppSettings.farClip)
+            }
 //
 //
-//            for(l in StrokeProvider.mStrokes){
-//
-//                //変換マトリックス
-//                val mMatrix = FloatArray(16) //モデル変換マトリックス
-//                GLES.useProgram()
-//                val dummyFloat = FloatArray(1)
-//                val dummyBuffer = BufferUtil.makeFloatBuffer(dummyFloat)
-//                //シェーダのattribute属性の変数に値を設定していないと暴走するのでここでセットしておく。この位置でないといけない
-//                GLES20.glVertexAttribPointer(
-//                    GLES.positionHandle,
-//                    3,
-//                    GLES20.GL_FLOAT,
-//                    false,
-//                    0,
-//                    dummyBuffer
-//                )
-//                GLES20.glVertexAttribPointer(
-//                    GLES.normalHandle,
-//                    3,
-//                    GLES20.GL_FLOAT,
-//                    false,
-//                    0,
-//                    dummyBuffer
-//                )
-//                GLES20.glVertexAttribPointer(
-//                    GLES.texcoordHandle,
-//                    2,
-//                    GLES20.GL_FLOAT,
-//                    false,
-//                    0,
-//                    dummyBuffer
-//                )
-//
-//                ShaderUtil.checkGLError("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAa", "before set texture0")
-//
-//                //無変換の記述はここ
-//                GLES.disableShading()
-//                GLES.enableTexture()
-//                GLES.setPMatrix(projmtx)
-//
-//                GLES.setCMatrix(viewmtx)
-//
-//                //大きい地球の最前面にHelloを表示
-//                Matrix.setIdentityM(mMatrix, 0)
-//
-//                val aMatrix = FloatArray(16) //モデル変換マトリックス
-////                Matrix.setIdentityM(aMatrix, 0)
-//                mAnchor!!.pose.toMatrix(aMatrix, 0)
-//
-//                Matrix.translateM(
-//                    mMatrix,
-//                    0,
-//                    l.getPoints()[0].x,
-//                    l.getPoints()[0].y,
-//                    l.getPoints()[0].z
-//                )
-////                Matrix.translateM(mMatrix, 0, 0.1f, 0f, 0f)
-//                Matrix.scaleM(mMatrix, 0, 0.1f, 0.1f, 0.1f)
-//                ShaderUtil.checkGLError("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAa", "before set texture1")
-//
-//                GLES.updateMatrix(mMatrix, aMatrix)
-//                StringTexture.draw(0.5f, .1f, 1.0f, 0.5f, 0.0f)
-//            }
+            for(l in StrokeProvider.mStrokes){
+
+                //変換マトリックス
+                val mMatrix = FloatArray(16) //モデル変換マトリックス
+                GLES.useProgram()
+                val dummyFloat = FloatArray(1)
+                val dummyBuffer = BufferUtil.makeFloatBuffer(dummyFloat)
+                //シェーダのattribute属性の変数に値を設定していないと暴走するのでここでセットしておく。この位置でないといけない
+                GLES20.glVertexAttribPointer(GLES.positionHandle, 3, GLES20.GL_FLOAT, false, 0, dummyBuffer)
+                GLES20.glVertexAttribPointer(GLES.normalHandle, 3, GLES20.GL_FLOAT, false, 0, dummyBuffer)
+                GLES20.glVertexAttribPointer(GLES.texcoordHandle, 2, GLES20.GL_FLOAT, false, 0, dummyBuffer)
+
+                ShaderUtil.checkGLError("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAa", "before set texture0")
+
+                //無変換の記述はここ
+                GLES.disableShading()
+                GLES.enableTexture()
+                GLES.setPMatrix(projmtx)
+
+                GLES.setCMatrix(viewmtx)
+
+                //大きい地球の最前面にHelloを表示
+                Matrix.setIdentityM(mMatrix, 0)
+
+                val aMatrix = FloatArray(16) //モデル変換マトリックス
+//                Matrix.setIdentityM(aMatrix, 0)
+                anchor!!.pose.toMatrix(aMatrix, 0)
+
+                Matrix.translateM(mMatrix, 0, l.getPoints()[0].x, l.getPoints()[0].y, l.getPoints()[0].z)
+//                Matrix.translateM(mMatrix, 0, 0.1f, 0f, 0f)
+                Matrix.scaleM(mMatrix, 0, 0.1f, 0.1f, 0.1f)
+                ShaderUtil.checkGLError("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAa", "before set texture1")
+
+                GLES.updateMatrix(mMatrix, aMatrix)
+                StringTexture.draw(0.5f, .1f, 1.0f, 0.5f, 0.0f)
+            }
 
 //            if(StrokeProvider.mStrokes.size > 0){
             if(false){
@@ -310,7 +300,7 @@ object ARFragmentSurfaceRenderer: RecordableSurfaceView.RendererCallbacks {
 //                Matrix.setIdentityM(mMatrix, 0)
 //                i.centerPose.toMatrix(aMatrix,0)
                 anchor!!.pose.toMatrix(aMatrix,0)
-                Log.e(TAG,"center!!!!! ${aMatrix}")
+//                Log.e(TAG,"center!!!!! ${aMatrix}")
                 GLES.setPMatrix(projmtx)
                 GLES.setCMatrix(viewmtx)
 
@@ -355,4 +345,41 @@ object ARFragmentSurfaceRenderer: RecordableSurfaceView.RendererCallbacks {
         uvTransform[8] = 1.0f
         return uvTransform
     }
+
+    private val mSharedStrokes: MutableMap<String, Stroke> = HashMap() // pair-partner's stroke
+    private fun handleTap(frame: Frame, camera: Camera) {
+        val tap = TapHelper.poll()
+
+        if(tap !== null){
+            val mLastTouch = Vector2f(tap.x, tap.y)
+            //addPoint2f(mLastTouch, frame, camera)
+            var point = convertWorldCordPoint(mLastTouch, frame, camera)
+            if (anchor != null) {
+                point = LineUtils.transformPointToPose(point, anchor!!.getPose())
+                StrokeProvider.addNewEvent(tap, point)
+            }
+        }
+
+        if(StrokeProvider.mStrokes.size >0) {
+            Log.e(TAG,"STROKE HANDLE TAP:::: ${StrokeProvider.mStrokes.size}")
+            LineShaderRenderer.setColor(AppSettings.color)
+            LineShaderRenderer.mDrawDistance = AppSettings.strokeDrawDistance
+            val distanceScale = 1.0f
+            LineShaderRenderer.setDistanceScale(distanceScale)
+            LineShaderRenderer.setLineWidth(0.33f)
+            LineShaderRenderer.clear()
+            LineShaderRenderer.updateStrokes(StrokeProvider.mStrokes, mSharedStrokes) // pair-partner's stroke
+            LineShaderRenderer.upload()
+        }
+    }
+
+
+    private fun convertWorldCordPoint(touchPoint: Vector2f, frame: Frame, camera: Camera): Vector3f {
+        val projmtx = FloatArray(16)
+        camera.getProjectionMatrix(projmtx, 0, 0.1f, 100.0f)
+        val viewmtx = FloatArray(16)
+        camera.getViewMatrix(viewmtx, 0)
+        return  LineUtils.getWorldCoords(touchPoint, mScreenWidth, mScreenHeight, projmtx, viewmtx)
+    }
+
 }

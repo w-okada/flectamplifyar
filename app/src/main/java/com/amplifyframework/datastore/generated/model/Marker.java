@@ -23,9 +23,13 @@ public final class Marker implements Model {
   public static final QueryField ID = field("id");
   public static final QueryField SCORE = field("score");
   public static final QueryField NAME = field("name");
+  public static final QueryField PATH = field("path");
+  public static final QueryField OWNER = field("owner");
   private final @ModelField(targetType="ID", isRequired = true) String id;
   private final @ModelField(targetType="Int", isRequired = true) Integer score;
   private final @ModelField(targetType="String", isRequired = true) String name;
+  private final @ModelField(targetType="String", isRequired = true) String path;
+  private final @ModelField(targetType="String", isRequired = true) String owner;
   private final @ModelField(targetType="Canvas") @HasMany(associatedWith = "marker", type = Canvas.class) List<Canvas> canvases = null;
   public String getId() {
       return id;
@@ -39,14 +43,24 @@ public final class Marker implements Model {
       return name;
   }
   
+  public String getPath() {
+      return path;
+  }
+  
+  public String getOwner() {
+      return owner;
+  }
+  
   public List<Canvas> getCanvases() {
       return canvases;
   }
   
-  private Marker(String id, Integer score, String name) {
+  private Marker(String id, Integer score, String name, String path, String owner) {
     this.id = id;
     this.score = score;
     this.name = name;
+    this.path = path;
+    this.owner = owner;
   }
   
   @Override
@@ -59,7 +73,9 @@ public final class Marker implements Model {
       Marker marker = (Marker) obj;
       return ObjectsCompat.equals(getId(), marker.getId()) &&
               ObjectsCompat.equals(getScore(), marker.getScore()) &&
-              ObjectsCompat.equals(getName(), marker.getName());
+              ObjectsCompat.equals(getName(), marker.getName()) &&
+              ObjectsCompat.equals(getPath(), marker.getPath()) &&
+              ObjectsCompat.equals(getOwner(), marker.getOwner());
       }
   }
   
@@ -69,6 +85,8 @@ public final class Marker implements Model {
       .append(getId())
       .append(getScore())
       .append(getName())
+      .append(getPath())
+      .append(getOwner())
       .toString()
       .hashCode();
   }
@@ -79,7 +97,9 @@ public final class Marker implements Model {
       .append("Marker {")
       .append("id=" + String.valueOf(getId()) + ", ")
       .append("score=" + String.valueOf(getScore()) + ", ")
-      .append("name=" + String.valueOf(getName()))
+      .append("name=" + String.valueOf(getName()) + ", ")
+      .append("path=" + String.valueOf(getPath()) + ", ")
+      .append("owner=" + String.valueOf(getOwner()))
       .append("}")
       .toString();
   }
@@ -110,6 +130,8 @@ public final class Marker implements Model {
     return new Marker(
       id,
       null,
+      null,
+      null,
       null
     );
   }
@@ -117,7 +139,9 @@ public final class Marker implements Model {
   public CopyOfBuilder copyOfBuilder() {
     return new CopyOfBuilder(id,
       score,
-      name);
+      name,
+      path,
+      owner);
   }
   public interface ScoreStep {
     NameStep score(Integer score);
@@ -125,7 +149,17 @@ public final class Marker implements Model {
   
 
   public interface NameStep {
-    BuildStep name(String name);
+    PathStep name(String name);
+  }
+  
+
+  public interface PathStep {
+    OwnerStep path(String path);
+  }
+  
+
+  public interface OwnerStep {
+    BuildStep owner(String owner);
   }
   
 
@@ -135,10 +169,12 @@ public final class Marker implements Model {
   }
   
 
-  public static class Builder implements ScoreStep, NameStep, BuildStep {
+  public static class Builder implements ScoreStep, NameStep, PathStep, OwnerStep, BuildStep {
     private String id;
     private Integer score;
     private String name;
+    private String path;
+    private String owner;
     @Override
      public Marker build() {
         String id = this.id != null ? this.id : UUID.randomUUID().toString();
@@ -146,7 +182,9 @@ public final class Marker implements Model {
         return new Marker(
           id,
           score,
-          name);
+          name,
+          path,
+          owner);
     }
     
     @Override
@@ -157,9 +195,23 @@ public final class Marker implements Model {
     }
     
     @Override
-     public BuildStep name(String name) {
+     public PathStep name(String name) {
         Objects.requireNonNull(name);
         this.name = name;
+        return this;
+    }
+    
+    @Override
+     public OwnerStep path(String path) {
+        Objects.requireNonNull(path);
+        this.path = path;
+        return this;
+    }
+    
+    @Override
+     public BuildStep owner(String owner) {
+        Objects.requireNonNull(owner);
+        this.owner = owner;
         return this;
     }
     
@@ -186,10 +238,12 @@ public final class Marker implements Model {
   
 
   public final class CopyOfBuilder extends Builder {
-    private CopyOfBuilder(String id, Integer score, String name) {
+    private CopyOfBuilder(String id, Integer score, String name, String path, String owner) {
       super.id(id);
       super.score(score)
-        .name(name);
+        .name(name)
+        .path(path)
+        .owner(owner);
     }
     
     @Override
@@ -200,6 +254,16 @@ public final class Marker implements Model {
     @Override
      public CopyOfBuilder name(String name) {
       return (CopyOfBuilder) super.name(name);
+    }
+    
+    @Override
+     public CopyOfBuilder path(String path) {
+      return (CopyOfBuilder) super.path(path);
+    }
+    
+    @Override
+     public CopyOfBuilder owner(String owner) {
+      return (CopyOfBuilder) super.owner(owner);
     }
   }
   

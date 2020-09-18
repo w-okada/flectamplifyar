@@ -167,12 +167,20 @@ class ImageCaptureView: ConstraintLayout {
                         { response ->
                             Log.i("MyAmplifyApp", "POST " + response.data.asString())
                             val score = response.data.asJSONObject()["score"]
-                            mHandler.post{
-                                waitUploadingStatusText.text = "upload image succeeded. Score: ${score}"
-                                waitUploadingExitButton.visibility = View.VISIBLE
-                                waitUploadingProgressBar.visibility = View.INVISIBLE
+                            if(score.equals("")){
+                                mHandler.post{
+                                    waitUploadingStatusText.text = "can not get enough feature from image"
+                                    waitUploadingExitButton.visibility = View.VISIBLE
+                                    waitUploadingProgressBar.visibility = View.INVISIBLE
+                                }
+                            }else {
+                                mHandler.post {
+                                    waitUploadingStatusText.text = "upload image succeeded. Score: ${score}"
+                                    waitUploadingExitButton.visibility = View.VISIBLE
+                                    waitUploadingProgressBar.visibility = View.INVISIBLE
+                                }
+                                uploadSucceeded = true
                             }
-                            uploadSucceeded = true
                         },
                         { error ->
                             Log.e("MyAmplifyApp", "POST failed", error)
