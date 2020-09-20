@@ -116,7 +116,12 @@ void main() {
 
         gl_FragColor *= DepthGetBlurredVisibilityAroundUV(u_DepthTexture, depth_uvs, asset_depth_mm);
     } else {
-        gl_FragColor=v_Color;
+//        gl_FragColor=v_Color;
+        const float kMetersToMillimeters = 1000.0;
+        float asset_depth_mm = v_ViewPosition.z * kMetersToMillimeters * -1.;
+        vec2 depth_uvs = (u_DepthUvTransform * vec3(v_ScreenSpacePosition.xy, 1)).xy;
+
+        gl_FragColor *= DepthGetBlurredVisibilityAroundUV(u_DepthTexture, depth_uvs, asset_depth_mm);
     }
 }
 

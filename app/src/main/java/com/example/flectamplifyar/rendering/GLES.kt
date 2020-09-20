@@ -52,6 +52,10 @@ object GLES {
     private val LightPos = FloatArray(4) //光源の座標　x,y,z　（ワールド座標）
     private val CVLightPos = FloatArray(4) //光源の座標　x,y,z　（カメラビュー座標）
 
+    private val LightAmb = FloatArray(4) //光源の環境光
+    private val LightDif = FloatArray(4) //光源の乱反射光
+    private val LightSpc = FloatArray(4) //光源の鏡面反射反射光
+
 
     // Occlusion
     // Shader location: depth texture.
@@ -191,6 +195,12 @@ object GLES {
     //ワールド座標系のLightPosを受け取る
     fun setLightPosition(lp: FloatArray) {
         System.arraycopy(lp, 0, LightPos, 0, 4)
+    }
+
+    fun putLightAttribute(amb: FloatArray?, dif: FloatArray?, spc: FloatArray?) {
+        System.arraycopy(amb, 0, LightAmb, 0, 4)
+        System.arraycopy(dif, 0, LightDif, 0, 4)
+        System.arraycopy(spc, 0, LightSpc, 0, 4)
     }
 
     //プロジェクション行列（射影行列）を受け取る

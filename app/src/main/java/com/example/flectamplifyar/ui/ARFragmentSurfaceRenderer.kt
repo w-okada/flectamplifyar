@@ -94,6 +94,11 @@ object ARFragmentSurfaceRenderer: RecordableSurfaceView.RendererCallbacks {
             GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA) // 単純なアルファブレンド
 
 
+            GLES20.glUniform4f(GLES.lightAmbientHandle, 0.15f, 0.15f, 0.15f, 1.0f) //周辺光
+            GLES20.glUniform4f(GLES.lightDiffuseHandle, 0.5f, 0.5f, 0.5f, 1.0f) //乱反射光
+            GLES20.glUniform4f(GLES.lightSpecularHandle, 0.9f, 0.9f, 0.9f, 1.0f) //鏡面反射光
+
+
             calculateUVTransform = true
         } catch (e: IOException) {
             Log.e(TAG, "Failed to read an asset file", e)
@@ -135,8 +140,8 @@ object ARFragmentSurfaceRenderer: RecordableSurfaceView.RendererCallbacks {
             }
 
 
+            // アンカー作成
             val updatedAugmentedImages = frame.getUpdatedTrackables(AugmentedImage::class.java)
-//            Log.e(TAG,"AUGMENTED IMAGE ${updatedAugmentedImages.size}")
             for(i in updatedAugmentedImages){
 //                Log.e(TAG,"AUGMENTED IMAGE ${i.name}")
                 if(i.trackingState != TrackingState.TRACKING){
@@ -160,16 +165,19 @@ object ARFragmentSurfaceRenderer: RecordableSurfaceView.RendererCallbacks {
             }
 
 
+            // UV Transform
             if (frame.hasDisplayGeometryChanged() || calculateUVTransform) {
                 calculateUVTransform = false
                 val transform: FloatArray = getTextureTransformMatrix(frame)
                 GLES.setUvTransformMatrix(transform)
             }
 
-//            if (session!!.isDepthModeSupported(Config.DepthMode.AUTOMATIC)) {
-//                DepthTexture.updateWithDepthImageOnGlThread(frame)
-//            }
-//
+
+            // Depthを取得
+            if (session.isDepthModeSupported(Config.DepthMode.AUTOMATIC)) {
+                DepthTexture.updateWithDepthImageOnGlThread(frame)
+            }
+
             handleTap(frame, camera)
 //
             TrackingStateHelper.updateKeepScreenOnFlag(camera.trackingState)
@@ -220,7 +228,23 @@ object ARFragmentSurfaceRenderer: RecordableSurfaceView.RendererCallbacks {
                 GLES.disableShading()
                 GLES.enableTexture()
 
-                Axes.draw(1f, 0f, 0f, 1f, 10.0f, 20f);//座標軸の描画本体
+                GLES.setPMatrix(projmtx)
+                GLES.setCMatrix(viewmtx)
+
+                Matrix.setIdentityM(mMatrix, 0)
+                val aMatrix = FloatArray(16) //モデル変換マトリックス
+                Matrix.setIdentityM(aMatrix, 0)
+                anchor!!.pose.toMatrix(aMatrix, 0)
+
+                ShaderUtil.checkGLError("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAa", "before set texture1")
+
+                GLES.updateMatrix(mMatrix, aMatrix)
+
+
+                for (l in StrokeProvider.mStrokes){
+                    Axes.makeAStroke(l)
+                    Axes.draw(1f, 0f, 0f, 1f, 10.0f, 20f);//座標軸の描画本体
+                }
             }
 //
 //
@@ -300,11 +324,11 @@ object ARFragmentSurfaceRenderer: RecordableSurfaceView.RendererCallbacks {
                 TexSphere.draw(1f, 1f, 1f, 1f, 5.0f);
             }
 
-            if(StrokeProvider.mStrokes.size>0){
-                Log.e(TAG, "Stroke size : ${StrokeProvider.mStrokes.size} ${mScreenWidth} ${mScreenHeight}")
-                anchor!!.pose.toMatrix(LineShaderRenderer.mModelMatrix, 0)
-                LineShaderRenderer.draw(viewmtx, projmtx, mScreenWidth, mScreenHeight, AppSettings.nearClip, AppSettings.farClip)
-            }
+//            if(StrokeProvider.mStrokes.size>0){
+//                Log.e(TAG, "Stroke size : ${StrokeProvider.mStrokes.size} ${mScreenWidth} ${mScreenHeight}")
+//                anchor!!.pose.toMatrix(LineShaderRenderer.mModelMatrix, 0)
+//                LineShaderRenderer.draw(viewmtx, projmtx, mScreenWidth, mScreenHeight, AppSettings.nearClip, AppSettings.farClip)
+//            }
 
 //            if(StrokeProvider.mStrokes.size > 0){
             if(false){

@@ -44,6 +44,8 @@ void main(){
         v_Color=ambient+diffuse+specular;
     } else {
         v_Color=u_ObjectColor;
+        v_ViewPosition = (u_MMatrix * a_Position).xyz;
+        v_ScreenSpacePosition = gl_Position.xyz / gl_Position.w;
     }
     gl_Position=u_PMMatrix*a_Position;
     if (u_EnableTexture==1) {

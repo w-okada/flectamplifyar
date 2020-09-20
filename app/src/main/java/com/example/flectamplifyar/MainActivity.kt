@@ -8,6 +8,7 @@ import com.amplifyframework.AmplifyException
 import com.amplifyframework.api.aws.AWSApiPlugin
 import com.amplifyframework.auth.cognito.AWSCognitoAuthPlugin
 import com.amplifyframework.core.Amplify
+import com.amplifyframework.core.AmplifyConfiguration
 import com.amplifyframework.storage.s3.AWSS3StoragePlugin
 import com.example.flectamplifyar.helper.FullScreenHelper
 
@@ -26,11 +27,13 @@ class MainActivity : AppCompatActivity(){
             Log.i("MyAmplifyApp", "Initialized Amplify")
 
 
-
+            val config = AmplifyConfiguration.builder(applicationContext)
+                .devMenuEnabled(false)
+                .build()
             Amplify.addPlugin(AWSCognitoAuthPlugin())
             Amplify.addPlugin(AWSS3StoragePlugin())
             Amplify.addPlugin(AWSApiPlugin())
-            Amplify.configure(App.getApp().applicationContext)
+            Amplify.configure(config, App.getApp().applicationContext)
 //
 
             Amplify.Auth.fetchAuthSession(
