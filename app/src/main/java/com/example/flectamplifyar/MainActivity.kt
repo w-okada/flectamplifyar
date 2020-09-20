@@ -25,6 +25,8 @@ class MainActivity : AppCompatActivity(){
         try {
             Log.i("MyAmplifyApp", "Initialized Amplify")
 
+
+
             Amplify.addPlugin(AWSCognitoAuthPlugin())
             Amplify.addPlugin(AWSS3StoragePlugin())
             Amplify.addPlugin(AWSApiPlugin())

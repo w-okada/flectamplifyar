@@ -27,7 +27,7 @@ varying vec3 v_ScreenSpacePosition;
 
 
 
-void main(){
+void not_used_main(){
 //    if (u_EnableShading==1) {
 //        vec4 ambient=u_LightAmbient*u_MaterialAmbient;
 //        vec3 P=vec3(u_MMatrix*a_Position);

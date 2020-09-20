@@ -103,7 +103,7 @@ float DepthGetBlurredVisibilityAroundUV(in sampler2D depth_texture, in vec2 uv,i
     // return 1.0f;
 }
 
-void main() {
+void not_used_main() {
     if (u_EnableTexture==1) {
         if (u_EnableShading==1) {
             gl_FragColor = v_Color*texture2D(u_Texture, v_Texcoord);

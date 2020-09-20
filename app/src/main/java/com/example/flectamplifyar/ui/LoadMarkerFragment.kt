@@ -25,6 +25,8 @@ import javax.microedition.khronos.opengles.GL10
 
 class LoadMarkerFragment(): Fragment(){
     private var bm: Bitmap? = null
+    private var selectedLoadMarkerSpinnerItemState:LoadMarkerSpinnerItemState? = null
+
     companion object {
         private val TAG: String = LoadMarkerFragment::class.java.getSimpleName()
     }
@@ -54,11 +56,12 @@ class LoadMarkerFragment(): Fragment(){
             loadMarkerImageView.setImageBitmap(state.bm)
             loadMarkerTextView.text = "${state.name}[${state.score}]"
             loadMarkerSelectButton.visibility = View.VISIBLE
-            bm = state.bm
+            selectedLoadMarkerSpinnerItemState = state
         }
 
         loadMarkerSelectButton.setOnClickListener{
-            App.getApp().marker = bm
+            App.getApp().marker = selectedLoadMarkerSpinnerItemState!!.bm
+            App.setCurrentMarker(selectedLoadMarkerSpinnerItemState!!.id)
             findNavController().navigate(R.id.action_second_to_first)
         }
 

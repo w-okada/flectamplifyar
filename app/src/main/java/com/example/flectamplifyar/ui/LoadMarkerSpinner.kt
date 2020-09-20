@@ -12,6 +12,10 @@ import android.widget.ArrayAdapter
 import android.widget.ImageView
 import android.widget.ListView
 import android.widget.TextView
+import com.amplifyframework.api.aws.GsonVariablesSerializer
+import com.amplifyframework.api.graphql.GraphQLRequest
+import com.amplifyframework.api.graphql.GraphQLResponse
+import com.amplifyframework.api.graphql.SimpleGraphQLRequest
 import com.amplifyframework.api.graphql.model.ModelQuery
 import com.amplifyframework.core.Amplify
 import com.amplifyframework.datastore.generated.model.Marker
@@ -89,15 +93,62 @@ class LoadMarkerListView:  ListView{
         queryMarkers()
     }
 
+
+
+    private fun getMarkerOnlyRequest(): GraphQLRequest<Array<Marker>> {
+//        val document = (
+//                "query getMarker() { "
+//                    + "getMarker(){ "
+//                        + "id "
+//                        + "score "
+//                        + "name "
+//                        + "path "
+//                    + "} "
+//                + "} "
+//                )
+
+        val document = (
+                "query MyQuery { listMarkersa  {items{id name}}}"
+//                "query MyQuery {\n" +
+//                        "  listMarkers {\n" +
+//                        "    items {\n" +
+//                        "      name\n" +
+//                        "    }\n" +
+//                        "  }\n" +
+//                        "}\n"
+
+//                "query MyQuery {\n" +
+//                        "  getMarker(id: \"0038ea5a34b02f46e577cf3fd5584be88e3e3c00\") {\n" +
+//                        "    name\n" +
+//                        "  }\n" +
+//                        "}\n"
+                )
+
+        return SimpleGraphQLRequest(
+            document,
+            Marker::class.java,
+            GsonVariablesSerializer()
+        )
+    }
+
+
     fun queryMarkers():ArrayList<LoadMarkerSpinnerItemState>{
         val tmpList = ArrayList<LoadMarkerSpinnerItemState>()
+//        val request = getMarkerOnlyRequest()
+//        Log.e("----------","REQUEST ${request.query}")
         Amplify.API.query(
             ModelQuery.list(Marker::class.java, Marker.SCORE.gt(20)),
+//            request,
             { response ->
+                Log.e("---", "LIST MARKER: ${response}")
                 for (marker in response.data) {
+                    Log.e("---", "LIST MARKER: ${marker}, ${marker.canvases.size}")
+                    for(canvas in marker.canvases){
+                        Log.e("---", "LIST MARKER: ${canvas}")
+                    }
+
                     val key = marker.path
                     val dstFile = File("${App.getApp().applicationContext.filesDir.toString()}/${marker.id}.jpg")
-                    Log.e("---", "file: ${dstFile.absolutePath.toString()}")
                     Amplify.Storage.downloadFile(
                         key,
                         dstFile,
@@ -147,12 +198,10 @@ data class LoadMarkerSpinnerViewHolder(var imageView: ImageView, var textView: T
 class LoadMarkersSpinnerAdapter(private val mContext: Context, resource: Int, private val listState: ArrayList<LoadMarkerSpinnerItemState>) : ArrayAdapter<LoadMarkerSpinnerItemState>(mContext, resource, listState) {
 
     override fun getDropDownView(position: Int, convertView: View?, parent: ViewGroup?): View {
-        Log.e("------", "DROPDOWN: ${position}")
         return getCustomView(position, convertView, parent)
     }
 
     override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
-        Log.e("------", "VIEW: ${position}")
         return getCustomView(position, convertView, parent)
     }
 
@@ -175,7 +224,6 @@ class LoadMarkersSpinnerAdapter(private val mContext: Context, resource: Int, pr
 
         holder.imageView.setImageBitmap(listState[position].bm)
         holder.textView.text = "${listState[position].name} \n[score:${listState[position].score}]"
-        Log.e("-afdasdf", "DROP:  ${position}, ${listState[position].name}")
         return convertView!!
     }
 }

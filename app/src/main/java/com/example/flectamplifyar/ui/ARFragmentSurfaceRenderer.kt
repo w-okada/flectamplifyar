@@ -8,6 +8,7 @@ import android.util.Log
 import android.view.Surface
 import android.view.View
 import com.example.flectamplifyar.AppSettings
+import com.example.flectamplifyar.R
 import com.example.flectamplifyar.helper.DepthSettings
 import com.example.flectamplifyar.helper.DisplayRotationHelper
 import com.example.flectamplifyar.helper.TapHelper
@@ -18,9 +19,7 @@ import com.example.flectamplifyar.rendering.*
 import com.google.ar.core.*
 import com.uncorkedstudios.android.view.recordablesurfaceview.RecordableSurfaceView
 import kotlinx.android.synthetic.main.image_capture_view.*
-import kotlinx.android.synthetic.main.image_capture_view.view.*
 import java.io.IOException
-import javax.microedition.khronos.opengles.GL10
 import javax.vecmath.Vector2f
 import javax.vecmath.Vector3f
 
@@ -32,7 +31,7 @@ object ARFragmentSurfaceRenderer: RecordableSurfaceView.RendererCallbacks {
 
     private var mScreenWidth  = 0.0f
     private var mScreenHeight = 0.0f
-
+    lateinit private var earthPicture: Texture
 
 //    var captureNextFrame = false
 
@@ -81,6 +80,8 @@ object ARFragmentSurfaceRenderer: RecordableSurfaceView.RendererCallbacks {
             GLES.setDepthTexture(DepthTexture.getTextureId(), DepthTexture.getWidth(), DepthTexture.getHeight())
             StringTexture.setup("FLECT", 20f, Color.parseColor("#FFFFFFFF"), Color.parseColor("#55FF0000"))
             TrianglTexture.setup("aaaa", 20f, Color.parseColor("#FFFFFFFF"), Color.parseColor("#55FF0000"))
+
+            earthPicture = Texture(arFragment.requireContext(), R.drawable.earthpicture)
 
             //デプスバッファの有効化
             GLES20.glEnable(GLES20.GL_DEPTH_TEST)
@@ -196,10 +197,30 @@ object ARFragmentSurfaceRenderer: RecordableSurfaceView.RendererCallbacks {
 //                SnackbarHelper.showMessage(this, SEARCHING_PLANE_MESSAGE)
 //            }
 //
-            if(StrokeProvider.mStrokes.size>0){
-                Log.e(TAG,"Stroke size : ${StrokeProvider.mStrokes.size} ${mScreenWidth} ${mScreenHeight}")
-                anchor!!.pose.toMatrix(LineShaderRenderer.mModelMatrix, 0)
-                LineShaderRenderer.draw(viewmtx, projmtx, mScreenWidth, mScreenHeight, AppSettings.nearClip, AppSettings.farClip)
+
+
+
+            if(true){
+
+                //変換マトリックス
+                val mMatrix = FloatArray(16) //モデル変換マトリックス
+                GLES.useProgram()
+                val dummyFloat = FloatArray(1)
+                val dummyBuffer = BufferUtil.makeFloatBuffer(dummyFloat)
+                //シェーダのattribute属性の変数に値を設定していないと暴走するのでここでセットしておく。この位置でないといけない
+                GLES20.glVertexAttribPointer(GLES.positionHandle, 3, GLES20.GL_FLOAT, false, 0, dummyBuffer)
+                GLES20.glVertexAttribPointer(GLES.normalHandle, 3, GLES20.GL_FLOAT, false, 0, dummyBuffer)
+                GLES20.glVertexAttribPointer(GLES.texcoordHandle, 2, GLES20.GL_FLOAT, false, 0, dummyBuffer)
+
+                ShaderUtil.checkGLError("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAa", "before set texture0")
+
+                //無変換の記述はここ
+//                GLES.enableShading()
+//                GLES.disableTexture()
+                GLES.disableShading()
+                GLES.enableTexture()
+
+                Axes.draw(1f, 0f, 0f, 1f, 10.0f, 20f);//座標軸の描画本体
             }
 //
 //
@@ -224,7 +245,6 @@ object ARFragmentSurfaceRenderer: RecordableSurfaceView.RendererCallbacks {
 
                 GLES.setCMatrix(viewmtx)
 
-                //大きい地球の最前面にHelloを表示
                 Matrix.setIdentityM(mMatrix, 0)
 
                 val aMatrix = FloatArray(16) //モデル変換マトリックス
@@ -233,11 +253,57 @@ object ARFragmentSurfaceRenderer: RecordableSurfaceView.RendererCallbacks {
 
                 Matrix.translateM(mMatrix, 0, l.getPoints()[0].x, l.getPoints()[0].y, l.getPoints()[0].z)
 //                Matrix.translateM(mMatrix, 0, 0.1f, 0f, 0f)
-                Matrix.scaleM(mMatrix, 0, 0.1f, 0.1f, 0.1f)
+                Matrix.scaleM(mMatrix, 0, 0.1f, 0.1f, -0.1f)
                 ShaderUtil.checkGLError("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAa", "before set texture1")
 
                 GLES.updateMatrix(mMatrix, aMatrix)
                 StringTexture.draw(0.5f, .1f, 1.0f, 0.5f, 0.0f)
+            }
+
+            for(l in StrokeProvider.mStrokes){
+
+                //変換マトリックス
+                val mMatrix = FloatArray(16) //モデル変換マトリックス
+                GLES.useProgram()
+                val dummyFloat = FloatArray(1)
+                val dummyBuffer = BufferUtil.makeFloatBuffer(dummyFloat)
+                //シェーダのattribute属性の変数に値を設定していないと暴走するのでここでセットしておく。この位置でないといけない
+                GLES20.glVertexAttribPointer(GLES.positionHandle, 3, GLES20.GL_FLOAT, false, 0, dummyBuffer)
+                GLES20.glVertexAttribPointer(GLES.normalHandle, 3, GLES20.GL_FLOAT, false, 0, dummyBuffer)
+                GLES20.glVertexAttribPointer(GLES.texcoordHandle, 2, GLES20.GL_FLOAT, false, 0, dummyBuffer)
+
+                ShaderUtil.checkGLError("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAa", "before set texture0")
+
+                //無変換の記述はここ
+//                GLES.enableShading()
+//                GLES.disableTexture()
+                GLES.disableShading()
+                GLES.enableTexture()
+                GLES.setPMatrix(projmtx)
+
+                GLES.setCMatrix(viewmtx)
+
+                //大きい地球の最前面にHelloを表示
+                Matrix.setIdentityM(mMatrix, 0)
+
+                val aMatrix = FloatArray(16) //モデル変換マトリックス
+                Matrix.setIdentityM(aMatrix, 0)
+//                anchor!!.pose.toMatrix(aMatrix, 0)
+
+//                Matrix.translateM(mMatrix, 0, l.getPoints()[0].x, l.getPoints()[0].y, l.getPoints()[0].z)
+                Matrix.translateM(mMatrix, 0, 0.1f, 0.0f, 0.1f)
+                Matrix.scaleM(mMatrix, 0, 0.05f, 0.05f, 0.05f);
+                ShaderUtil.checkGLError("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAa", "before set texture1")
+
+                GLES.updateMatrix(mMatrix, aMatrix)
+                earthPicture.setTexture();
+                TexSphere.draw(1f, 1f, 1f, 1f, 5.0f);
+            }
+
+            if(StrokeProvider.mStrokes.size>0){
+                Log.e(TAG, "Stroke size : ${StrokeProvider.mStrokes.size} ${mScreenWidth} ${mScreenHeight}")
+                anchor!!.pose.toMatrix(LineShaderRenderer.mModelMatrix, 0)
+                LineShaderRenderer.draw(viewmtx, projmtx, mScreenWidth, mScreenHeight, AppSettings.nearClip, AppSettings.farClip)
             }
 
 //            if(StrokeProvider.mStrokes.size > 0){
@@ -260,7 +326,7 @@ object ARFragmentSurfaceRenderer: RecordableSurfaceView.RendererCallbacks {
                 val aMatrix = FloatArray(16) //モデル変換マトリックス
                 Matrix.setIdentityM(aMatrix, 0)
 //                Matrix.setIdentityM(mMatrix, 0)
-                anchor!!.pose.toMatrix(aMatrix,0)
+                anchor!!.pose.toMatrix(aMatrix, 0)
                 GLES.setPMatrix(projmtx)
                 GLES.setCMatrix(viewmtx)
 
@@ -299,7 +365,7 @@ object ARFragmentSurfaceRenderer: RecordableSurfaceView.RendererCallbacks {
                 Matrix.setIdentityM(aMatrix, 0)
 //                Matrix.setIdentityM(mMatrix, 0)
 //                i.centerPose.toMatrix(aMatrix,0)
-                anchor!!.pose.toMatrix(aMatrix,0)
+                anchor!!.pose.toMatrix(aMatrix, 0)
 //                Log.e(TAG,"center!!!!! ${aMatrix}")
                 GLES.setPMatrix(projmtx)
                 GLES.setCMatrix(viewmtx)
@@ -309,6 +375,9 @@ object ARFragmentSurfaceRenderer: RecordableSurfaceView.RendererCallbacks {
                 GLES.updateMatrix(mMatrix, aMatrix)
                 TrianglTexture.draw(0.5f, .1f, 1.0f, 0.5f, 0.0f)
             }
+
+
+
 
 
         } catch (t: Throwable) {
@@ -361,7 +430,7 @@ object ARFragmentSurfaceRenderer: RecordableSurfaceView.RendererCallbacks {
         }
 
         if(StrokeProvider.mStrokes.size >0) {
-            Log.e(TAG,"STROKE HANDLE TAP:::: ${StrokeProvider.mStrokes.size}")
+//            Log.e(TAG, "STROKE HANDLE TAP:::: ${StrokeProvider.mStrokes.size}")
             LineShaderRenderer.setColor(AppSettings.color)
             LineShaderRenderer.mDrawDistance = AppSettings.strokeDrawDistance
             val distanceScale = 1.0f

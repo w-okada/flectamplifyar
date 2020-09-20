@@ -73,6 +73,7 @@ class ARFragment(): Fragment(){
         return inflater.inflate(R.layout.arfragment, container, false)
     }
 
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -82,6 +83,7 @@ class ARFragment(): Fragment(){
         rSurfaceView.rendererCallbacks = ARFragmentSurfaceRenderer
         ARFragmentSurfaceRenderer.setup(this)
         rSurfaceView.setOnTouchListener(TapHelper)
+
     }
 
 
@@ -293,7 +295,7 @@ class ARFragment(): Fragment(){
 
 
 
-    fun setMarker(bm:Bitmap){
+    fun setMarker(bm:Bitmap, ){
         Log.e(TAG, "setBM!!!!!!!!!!!!!!!")
         val config = session!!.getConfig()
         imageDatabase = AugmentedImageDatabase(session)

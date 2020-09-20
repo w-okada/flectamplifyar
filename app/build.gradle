@@ -61,4 +61,7 @@ dependencies {
     // Record openGL to MP4 https://github.com/UncorkedStudios/recordablesurfaceview
     implementation 'com.uncorkedstudios.android:recordable-surfaceview:1.5.7'
 
+    implementation 'com.google.ar.sceneform.ux:sceneform-ux:1.5.1'
+    implementation 'com.google.ar.sceneform:assets:1.5.1'
+
 }

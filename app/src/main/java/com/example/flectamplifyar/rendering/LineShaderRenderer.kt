@@ -348,7 +348,7 @@ object LineShaderRenderer {
         Matrix.multiplyMM(mModelViewProjectionMatrix, 0, cameraPerspective, 0, mModelViewMatrix, 0)
         ShaderUtil.checkGLError(TAG, "Before draw")
         GLES20.glUseProgram(mProgramName)
-        GLES20.glDisable(GLES20.GL_DEPTH_TEST)
+//        GLES20.glDisable(GLES20.GL_DEPTH_TEST)
 
         // Blending setup
         GLES20.glEnable(GLES20.GL_BLEND)
