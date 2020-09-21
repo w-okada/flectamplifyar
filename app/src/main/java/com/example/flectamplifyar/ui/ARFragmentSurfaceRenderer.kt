@@ -73,7 +73,6 @@ object ARFragmentSurfaceRenderer: RecordableSurfaceView.RendererCallbacks {
         try {
             DepthTexture .createOnGlThread()
             BackgroundRenderer.createOnGlThread(context, DepthTexture.getTextureId())
-            LineShaderRenderer.createOnGlThread(context)
 
             // GLES
             GLES.makeProgram(context)
@@ -453,17 +452,6 @@ object ARFragmentSurfaceRenderer: RecordableSurfaceView.RendererCallbacks {
             }
         }
 
-        if(StrokeProvider.mStrokes.size >0) {
-//            Log.e(TAG, "STROKE HANDLE TAP:::: ${StrokeProvider.mStrokes.size}")
-            LineShaderRenderer.setColor(AppSettings.color)
-            LineShaderRenderer.mDrawDistance = AppSettings.strokeDrawDistance
-            val distanceScale = 1.0f
-            LineShaderRenderer.setDistanceScale(distanceScale)
-            LineShaderRenderer.setLineWidth(0.33f)
-            LineShaderRenderer.clear()
-            LineShaderRenderer.updateStrokes(StrokeProvider.mStrokes, mSharedStrokes) // pair-partner's stroke
-            LineShaderRenderer.upload()
-        }
     }
 
 
