@@ -80,12 +80,17 @@ object ARFragmentSurfaceRenderer: RecordableSurfaceView.RendererCallbacks {
 //            StringTexture.makeColorTexture(Color.parseColor("#55FF0000"))
             TextureRect.makeImageTexture(context,  R.drawable.earthpicture)
 
-            TrianglTexture.setup("aaaa", 20f, Color.parseColor("#FFFFFFFF"), Color.parseColor("#55FF0000"))
+            TextureTriangl.setup()
+            TextureTriangl.makeImageTexture(context,  R.drawable.earthpicture)
 
 
 //            TextureSphere.makeImageTexture(context,  R.drawable.earthpicture)
 //            TextureSphere.makeStringTexture("FLECT", 20f, Color.parseColor("#FFFFFFFF"), Color.parseColor("#55FF0000"))
             TextureSphere.makeColorTexture(Color.parseColor("#55FF0000"))
+
+            TextureLine.makeColorTexture(Color.parseColor("#55FF0000"))
+
+
             //デプスバッファの有効化
             GLES20.glEnable(GLES20.GL_DEPTH_TEST)
             // カリングの有効化
@@ -245,8 +250,8 @@ object ARFragmentSurfaceRenderer: RecordableSurfaceView.RendererCallbacks {
 
 
                 for (l in StrokeProvider.mStrokes){
-                    Axes.makeAStroke(l)
-                    Axes.draw(1f, 0f, 0f, 1f, 10.0f, 20f);//座標軸の描画本体
+                    TextureLine.makeAStroke(l)
+                    TextureLine.draw(1f, 0f, 0f, 1f, 10.0f, 20f);//座標軸の描画本体
                 }
             }
 //
@@ -359,7 +364,7 @@ object ARFragmentSurfaceRenderer: RecordableSurfaceView.RendererCallbacks {
                 Matrix.setIdentityM(mMatrix, 0)
                 Matrix.translateM(mMatrix, 0, 0.5f, 0.1f, -0.3f)
                 GLES.updateMatrix(mMatrix, aMatrix)
-                TrianglTexture.draw(0.5f, .1f, 1.0f, 0.5f, 0.0f)
+                TextureTriangl.draw(0.5f, .1f, 1.0f, 0.5f, 0.0f)
             }
 
 
@@ -399,7 +404,7 @@ object ARFragmentSurfaceRenderer: RecordableSurfaceView.RendererCallbacks {
                 Matrix.setIdentityM(mMatrix, 0)
 //                Matrix.translateM(mMatrix, 0, 0.5f, 0.1f, -0.3f)
                 GLES.updateMatrix(mMatrix, aMatrix)
-                TrianglTexture.draw(0.5f, .1f, 1.0f, 0.5f, 0.0f)
+                TextureTriangl.draw(0.5f, .1f, 1.0f, 0.5f, 0.0f)
             }
 
 
