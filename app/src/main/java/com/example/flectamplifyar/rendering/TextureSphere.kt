@@ -1,5 +1,9 @@
 package com.example.flectamplifyar.rendering
 
+
+
+
+
 import android.opengl.GLES20
 import com.example.flectamplifyar.rendering.BufferUtil.makeFloatBuffer
 import com.example.flectamplifyar.rendering.BufferUtil.makeShortBuffer
@@ -9,7 +13,7 @@ import java.nio.ShortBuffer
 /**
  * Created by Tommy on 2015/07/11.
  */
-object TexSphere {
+object TextureSphere: TextureObject() {
     //bufferの定義
     private var vertexBuffer: FloatBuffer? = null
     private var indexBuffer: ShortBuffer? = null
@@ -92,22 +96,13 @@ object TexSphere {
     fun draw(r: Float, g: Float, b: Float, a: Float, shininess: Float) {
 
         //頂点点列のテクスチャ座標
-        GLES20.glVertexAttribPointer(
-            GLES.texcoordHandle, 2,
-            GLES20.GL_FLOAT, false, 0, texcoordBuffer
-        )
+        GLES20.glVertexAttribPointer(GLES.texcoordHandle, 2, GLES20.GL_FLOAT, false, 0, texcoordBuffer)
 
         //頂点点列
-        GLES20.glVertexAttribPointer(
-            GLES.positionHandle, 3,
-            GLES20.GL_FLOAT, false, 0, vertexBuffer
-        )
+        GLES20.glVertexAttribPointer(GLES.positionHandle, 3, GLES20.GL_FLOAT, false, 0, vertexBuffer)
 
         //頂点での法線ベクトル （これは頂点座標に等しい）
-        GLES20.glVertexAttribPointer(
-            GLES.normalHandle, 3,
-            GLES20.GL_FLOAT, false, 0, vertexBuffer
-        )
+        GLES20.glVertexAttribPointer(GLES.normalHandle, 3, GLES20.GL_FLOAT, false, 0, vertexBuffer)
 
         //周辺光反射
         GLES20.glUniform4f(GLES.materialAmbientHandle, r, g, b, a)
@@ -118,6 +113,19 @@ object TexSphere {
         //鏡面反射
         GLES20.glUniform4f(GLES.materialSpecularHandle, 1f, 1f, 1f, a)
         GLES20.glUniform1f(GLES.materialShininessHandle, shininess)
+
+        GLES20.glActiveTexture(GLES20.GL_TEXTURE0)
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, TextureId)
+        GLES20.glUniform1i(GLES.textureHandle, 0) //テクスチャユニット番号を指定する
+
+        // For occlusion
+        // Attach the depth texture.
+        GLES20.glActiveTexture(GLES20.GL_TEXTURE1)
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, GLES.depthTextureId)
+        GLES20.glUniform1i(GLES.depthTextureUniform, 1) //※２つ目
+        // Set the depth texture uv transform.
+        GLES20.glUniformMatrix3fv(GLES.depthUvTransformUniform, 1, false, GLES.uvTransform, 0)
+        GLES20.glUniform1f(GLES.depthAspectRatioUniform, GLES.depthAspectRatio)
 
         //shadingを使わない時に使う単色の設定 (r, g, b,a)
         GLES20.glUniform4f(GLES.objectColorHandle, 1f, 1f, 1f, a)

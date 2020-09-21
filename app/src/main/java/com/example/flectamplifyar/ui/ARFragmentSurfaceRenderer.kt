@@ -30,7 +30,6 @@ object ARFragmentSurfaceRenderer: RecordableSurfaceView.RendererCallbacks {
 
     private var mScreenWidth  = 0.0f
     private var mScreenHeight = 0.0f
-    lateinit private var earthPicture: Texture
 
 //    var captureNextFrame = false
 
@@ -83,8 +82,10 @@ object ARFragmentSurfaceRenderer: RecordableSurfaceView.RendererCallbacks {
 
             TrianglTexture.setup("aaaa", 20f, Color.parseColor("#FFFFFFFF"), Color.parseColor("#55FF0000"))
 
-            earthPicture = Texture(arFragment.requireContext(), R.drawable.earthpicture)
 
+//            TextureSphere.makeImageTexture(context,  R.drawable.earthpicture)
+//            TextureSphere.makeStringTexture("FLECT", 20f, Color.parseColor("#FFFFFFFF"), Color.parseColor("#55FF0000"))
+            TextureSphere.makeColorTexture(Color.parseColor("#55FF0000"))
             //デプスバッファの有効化
             GLES20.glEnable(GLES20.GL_DEPTH_TEST)
             // カリングの有効化
@@ -322,8 +323,7 @@ object ARFragmentSurfaceRenderer: RecordableSurfaceView.RendererCallbacks {
                 ShaderUtil.checkGLError("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAa", "before set texture1")
 
                 GLES.updateMatrix(mMatrix, aMatrix)
-                earthPicture.setTexture();
-                TexSphere.draw(1f, 1f, 1f, 1f, 5.0f);
+                TextureSphere.draw(1f, 1f, 1f, 1f, 5.0f);
             }
 
 //            if(StrokeProvider.mStrokes.size>0){
