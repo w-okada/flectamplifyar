@@ -91,6 +91,10 @@ object ARFragmentSurfaceRenderer: RecordableSurfaceView.RendererCallbacks {
             TextureLine.makeColorTexture(Color.parseColor("#55FF0000"))
 
 
+            TextureCube.setup()
+            TextureCube.makeColorTexture(Color.parseColor("#55FF0000"))
+
+
             //デプスバッファの有効化
             GLES20.glEnable(GLES20.GL_DEPTH_TEST)
             // カリングの有効化
@@ -331,42 +335,6 @@ object ARFragmentSurfaceRenderer: RecordableSurfaceView.RendererCallbacks {
                 TextureSphere.draw(1f, 1f, 1f, 1f, 5.0f);
             }
 
-//            if(StrokeProvider.mStrokes.size>0){
-//                Log.e(TAG, "Stroke size : ${StrokeProvider.mStrokes.size} ${mScreenWidth} ${mScreenHeight}")
-//                anchor!!.pose.toMatrix(LineShaderRenderer.mModelMatrix, 0)
-//                LineShaderRenderer.draw(viewmtx, projmtx, mScreenWidth, mScreenHeight, AppSettings.nearClip, AppSettings.farClip)
-//            }
-
-//            if(StrokeProvider.mStrokes.size > 0){
-            if(false){
-                GLES.useProgram()
-
-                val dummyFloat = FloatArray(1)
-                val dummyBuffer = BufferUtil.makeFloatBuffer(dummyFloat)
-                //シェーダのattribute属性の変数に値を設定していないと暴走するのでここでセットしておく。この位置でないといけない
-                GLES20.glVertexAttribPointer(GLES.positionHandle, 3, GLES20.GL_FLOAT, false, 0, dummyBuffer)
-                GLES20.glVertexAttribPointer(GLES.normalHandle, 3, GLES20.GL_FLOAT, false, 0, dummyBuffer)
-                GLES20.glVertexAttribPointer(GLES.texcoordHandle, 2, GLES20.GL_FLOAT, false, 0, dummyBuffer)
-
-
-
-                GLES.disableShading()
-                GLES.enableTexture()
-                //変換マトリックス
-                val mMatrix = FloatArray(16) //モデル変換マトリックス
-                val aMatrix = FloatArray(16) //モデル変換マトリックス
-                Matrix.setIdentityM(aMatrix, 0)
-//                Matrix.setIdentityM(mMatrix, 0)
-                anchor!!.pose.toMatrix(aMatrix, 0)
-                GLES.setPMatrix(projmtx)
-                GLES.setCMatrix(viewmtx)
-
-                Matrix.setIdentityM(mMatrix, 0)
-                Matrix.translateM(mMatrix, 0, 0.5f, 0.1f, -0.3f)
-                GLES.updateMatrix(mMatrix, aMatrix)
-                TextureTriangl.draw(0.5f, .1f, 1.0f, 0.5f, 0.0f)
-            }
-
 
             for(i in updatedAugmentedImages){
 //                if(i.trackingState != TrackingState.TRACKING){
@@ -403,8 +371,14 @@ object ARFragmentSurfaceRenderer: RecordableSurfaceView.RendererCallbacks {
 
                 Matrix.setIdentityM(mMatrix, 0)
 //                Matrix.translateM(mMatrix, 0, 0.5f, 0.1f, -0.3f)
+                Matrix.scaleM(mMatrix, 0, 0.005f, 0.005f, 0.005f);
                 GLES.updateMatrix(mMatrix, aMatrix)
-                TextureTriangl.draw(0.5f, .1f, 1.0f, 0.5f, 0.0f)
+//                TextureTriangl.draw(0.5f, .1f, 1.0f, 0.5f, 0.0f)
+//                TextureCube.draw(0.5f, .1f, 1.0f, 0.5f, 0.0f)
+                TextureCube.draw(0.5f, .1f, 1.0f, 0.5f, 0.0f)
+
+
+
             }
 
 

@@ -108,14 +108,13 @@ object TextureRect:TextureObject() {
         //
         indexBuffer!!.position(0)
 
-1
         GLES20.glEnableVertexAttribArray(GLES.texcoordHandle)
         GLES20.glEnableVertexAttribArray(GLES.positionHandle)
         GLES20.glEnableVertexAttribArray(GLES.normalHandle)
 
         GLES20.glDrawElements(
             GLES20.GL_TRIANGLE_STRIP,
-            4, GLES20.GL_UNSIGNED_BYTE, indexBuffer
+            indexs.size, GLES20.GL_UNSIGNED_BYTE, indexBuffer
         )
         GLES20.glDisableVertexAttribArray(GLES.texcoordHandle)
         GLES20.glDisableVertexAttribArray(GLES.positionHandle)
