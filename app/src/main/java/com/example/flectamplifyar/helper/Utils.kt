@@ -4,8 +4,9 @@ import android.graphics.*
 import android.media.Image
 import java.io.ByteArrayOutputStream
 
-object Utils{
+//　！！！！！ RecordableSurfaceを使うため、不使用化
 
+object Utils{
     fun generateBitmap(img: Image, rotate: Int): Bitmap {
         val y_size = img.planes[0].buffer.remaining()
         val u_size = img.planes[1].buffer.remaining()
@@ -44,8 +45,6 @@ object Utils{
             }
         }
         img.close()
-
         return bm
     }
-
 }

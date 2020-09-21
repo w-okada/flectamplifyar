@@ -140,11 +140,11 @@ class LoadMarkerListView:  ListView{
             ModelQuery.list(Marker::class.java, Marker.SCORE.gt(20)),
 //            request,
             { response ->
-                Log.e("---", "LIST MARKER: ${response}")
+                Log.e("---", "LIST MARKER1: ${response}")
                 for (marker in response.data) {
-                    Log.e("---", "LIST MARKER: ${marker}, ${marker.canvases.size}")
+                    Log.e("---", "LIST MARKER2: ${marker}, ${marker.canvases.size}")
                     for(canvas in marker.canvases){
-                        Log.e("---", "LIST MARKER: ${canvas}")
+                        Log.e("---", "LIST MARKER3: ${canvas}")
                     }
 
                     val key = marker.path
@@ -153,7 +153,7 @@ class LoadMarkerListView:  ListView{
                         key,
                         dstFile,
                         { result ->
-                            Log.i("MyAmplifyApp", "Successfully downloaded: ${result.getFile().name}")
+                            Log.e("MyAmplifyApp", "Successfully downloaded: ${result.getFile().name}")
                             val bm = BitmapFactory.decodeFile(dstFile.path)
                             val state = LoadMarkerSpinnerItemState(marker.id, marker.name, marker.path, marker.score, bm)
                             tmpList.add(state)
@@ -161,7 +161,7 @@ class LoadMarkerListView:  ListView{
                         },
                         { error -> Log.e("MyAmplifyApp", "Download Failure", error) }
                     )
-                    Log.i("MyAmplifyApp", "marker ${marker}")
+                    Log.e("---", "LIST MARKER4 marker ${marker}")
                 }
             },
             { error -> Log.e("MyAmplifyApp", "Query failure", error) }

@@ -144,7 +144,7 @@ object TrianglTexture {
 
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0)
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, TextureId)
-        GLES20.glUniform1i(GLES.textureHandle, TextureUnitNumber) //テクスチャユニット番号を指定する
+//        GLES20.glUniform1i(GLES.textureHandle, TextureUnitNumber) //テクスチャユニット番号を指定する
         ShaderUtil.checkGLError("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAa", "set Texture4")
 
 
@@ -152,7 +152,7 @@ object TrianglTexture {
         // Attach the depth texture.
         GLES20.glActiveTexture(GLES20.GL_TEXTURE1)
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, GLES.depthTextureId)
-        GLES20.glUniform1i(GLES.depthTextureUniform, 1) //※２つ目
+//        GLES20.glUniform1i(GLES.depthTextureUniform, 1) //※２つ目
         // Set the depth texture uv transform.
         GLES20.glUniformMatrix3fv(GLES.depthUvTransformUniform, 1, false, GLES.uvTransform, 0)
         GLES20.glUniform1f(GLES.depthAspectRatioUniform, GLES.depthAspectRatio)

@@ -1,5 +1,6 @@
 package com.example.flectamplifyar.rendering
 
+import android.content.Context
 import android.graphics.*
 import android.opengl.GLES20
 import android.opengl.GLUtils
@@ -11,14 +12,48 @@ import javax.microedition.khronos.opengles.GL10
 /**
  * Created by Tommy on 2015/07/15.
  */
-object StringTexture {
+object TextureRect {
     private var TextureId = -1
     private var TextureUnitNumber = 0
 
-    fun setup(text: String, textSize: Float, txtcolor: Int, bkcolor: Int) {
-        makeStringTexture(text, textSize, txtcolor, bkcolor)
+    fun setup() {
         setRectangular(1f, 1f)
     }
+
+
+    fun makeColorTexture(color: Int, size:Int =20){
+        // Text Bitmap生成
+        val paint = Paint()
+        val bitmapsize = size
+        val bitmap = Bitmap.createBitmap(bitmapsize, bitmapsize, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
+        paint.color = Color.GREEN
+        canvas.drawRect(Rect(0, 0, bitmapsize, bitmapsize), paint)
+
+        uploadTexture(bitmap)
+        bitmap.recycle()
+
+//        // Texture アップロード
+//        val firstIndex = 0
+//        val defaultOffset = 0
+//        val textures = IntArray(1)
+//        if (TextureId != -1) {
+//            textures[firstIndex] = TextureId
+//            GLES20.glDeleteTextures(1, textures, defaultOffset)
+//        }
+//        GLES20.glGenTextures(1, textures, defaultOffset)
+//        Log.e("-------------------","STRING TEXTURE ID = ${textures[0]}")
+//
+//        TextureId = textures[firstIndex]
+//        GLES20.glActiveTexture(GLES20.GL_TEXTURE0)
+//        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, TextureId)
+//        GLUtils.texImage2D(GL10.GL_TEXTURE_2D, 0, bitmap, 0)
+//        GLES20.glGenerateMipmap(GLES20.GL_TEXTURE_2D)
+//        bitmap.recycle()
+//        GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_NEAREST.toFloat())
+//        GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_NEAREST.toFloat())
+    }
+
 
     fun makeStringTexture(text: String, textSize: Float, txtcolor: Int, bkcolor: Int) {
 
@@ -49,28 +84,56 @@ object StringTexture {
             paint
         )
 
+        uploadTexture(bitmap)
 
+//        // Texture アップロード
+//        val firstIndex = 0
+//        val defaultOffset = 0
+//        val textures = IntArray(1)
+//        if (TextureId != -1) { // 同じテクスチャIDを使い回す。(増えると落ちるため。　毎度生成し直すので性能は落ちると思われる)
+//            textures[firstIndex] = TextureId
+//            GLES20.glDeleteTextures(1, textures, defaultOffset)
+//        }
+//        GLES20.glGenTextures(1, textures, defaultOffset)
+//
+//        TextureId = textures[firstIndex]
+//        GLES20.glActiveTexture(GLES20.GL_TEXTURE0)
+//        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, TextureId)
+//        GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bitmap, 0)
+//        GLES20.glGenerateMipmap(GLES20.GL_TEXTURE_2D)
+        bitmap.recycle()
+//        GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_NEAREST.toFloat())
+//        GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_NEAREST.toFloat())
+    }
+
+
+    fun makeImageTexture(mContext: Context, id: Int) {
+        val options = BitmapFactory.Options()
+        options.inScaled = false //これをつけないとサイズが勝手に変更されてしまう
+        val bitmap = BitmapFactory.decodeResource(mContext.resources, id, options)
+        uploadTexture(bitmap)
+        bitmap.recycle()
+    }
+    private fun uploadTexture(bitmap: Bitmap){
         // Texture アップロード
         val firstIndex = 0
         val defaultOffset = 0
         val textures = IntArray(1)
-        if (TextureId != -1) {
+        if (TextureId != -1) { // 同じテクスチャIDを使い回す。(増えると落ちるため。　毎度生成し直すので性能は落ちると思われる)
             textures[firstIndex] = TextureId
             GLES20.glDeleteTextures(1, textures, defaultOffset)
         }
         GLES20.glGenTextures(1, textures, defaultOffset)
-        Log.e("-------------------","STRING TEXTURE ID = ${textures[0]}")
 
         TextureId = textures[firstIndex]
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0)
-//        GLES20.glActiveTexture(GLES20.GL_TEXTURE0+TextureUnitNumber);
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, TextureId)
-        GLUtils.texImage2D(GL10.GL_TEXTURE_2D, 0, bitmap, 0)
+        GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bitmap, 0)
         GLES20.glGenerateMipmap(GLES20.GL_TEXTURE_2D)
-        bitmap.recycle()
         GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_NEAREST.toFloat())
         GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_NEAREST.toFloat())
-//        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0)
+
+
     }
 
 
@@ -142,7 +205,7 @@ object StringTexture {
 
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0)
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, TextureId)
-        GLES20.glUniform1i(GLES.textureHandle, TextureUnitNumber) //テクスチャユニット番号を指定する
+        GLES20.glUniform1i(GLES.textureHandle, 0) //テクスチャユニット番号を指定する
         ShaderUtil.checkGLError("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAa", "set Texture4")
 
 

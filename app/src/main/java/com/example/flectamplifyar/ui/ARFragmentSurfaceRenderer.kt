@@ -7,7 +7,6 @@ import android.opengl.Matrix
 import android.util.Log
 import android.view.Surface
 import android.view.View
-import com.example.flectamplifyar.AppSettings
 import com.example.flectamplifyar.R
 import com.example.flectamplifyar.helper.DepthSettings
 import com.example.flectamplifyar.helper.DisplayRotationHelper
@@ -77,7 +76,11 @@ object ARFragmentSurfaceRenderer: RecordableSurfaceView.RendererCallbacks {
             // GLES
             GLES.makeProgram(context)
             GLES.setDepthTexture(DepthTexture.getTextureId(), DepthTexture.getWidth(), DepthTexture.getHeight())
-            StringTexture.setup("FLECT", 20f, Color.parseColor("#FFFFFFFF"), Color.parseColor("#55FF0000"))
+            TextureRect.setup()
+//            StringTexture.makeStringTexture("FLECT", 20f, Color.parseColor("#FFFFFFFF"), Color.parseColor("#55FF0000"))
+//            StringTexture.makeColorTexture(Color.parseColor("#55FF0000"))
+            TextureRect.makeImageTexture(context,  R.drawable.earthpicture)
+
             TrianglTexture.setup("aaaa", 20f, Color.parseColor("#FFFFFFFF"), Color.parseColor("#55FF0000"))
 
             earthPicture = Texture(arFragment.requireContext(), R.drawable.earthpicture)
@@ -280,7 +283,7 @@ object ARFragmentSurfaceRenderer: RecordableSurfaceView.RendererCallbacks {
                 ShaderUtil.checkGLError("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAa", "before set texture1")
 
                 GLES.updateMatrix(mMatrix, aMatrix)
-                StringTexture.draw(0.5f, .1f, 1.0f, 0.5f, 0.0f)
+                TextureRect.draw(0.5f, .1f, 1.0f, 0.5f, 0.0f)
             }
 
             for(l in StrokeProvider.mStrokes){
