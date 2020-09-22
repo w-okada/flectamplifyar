@@ -11,8 +11,10 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.os.bundleOf
 import androidx.core.view.get
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.setFragmentResult
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.findNavController
@@ -60,10 +62,19 @@ class LoadMarkerFragment(): Fragment(){
         }
 
         loadMarkerSelectButton.setOnClickListener{
-            App.getApp().marker = selectedLoadMarkerSpinnerItemState!!.bm
-            App.setCurrentMarker(selectedLoadMarkerSpinnerItemState!!.id)
+            App.getApp().selectedMarkerBitmap = selectedLoadMarkerSpinnerItemState!!.bm
+            App.getApp().selectedMarkerId = selectedLoadMarkerSpinnerItemState!!.id
+
+            findNavController().navigate(R.id.action_second_to_first)
+            setFragmentResult("loadMarkerFragmentResult", bundleOf(
+                "selectedId" to selectedLoadMarkerSpinnerItemState!!.id,
+            ))
+        }
+
+        loadMarkerBackButton.setOnClickListener{
             findNavController().navigate(R.id.action_second_to_first)
         }
+
 
         loadMarkerRefreshButton.setOnClickListener{
             loadMarkerListView.queryMarkers()

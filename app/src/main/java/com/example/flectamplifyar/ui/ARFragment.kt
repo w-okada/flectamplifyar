@@ -16,27 +16,36 @@ import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.setFragmentResultListener
 import androidx.navigation.Navigation.findNavController
 import androidx.navigation.fragment.findNavController
 import com.amplifyframework.AmplifyException
+import com.amplifyframework.api.ApiOperation
 import com.amplifyframework.api.aws.AWSApiPlugin
+import com.amplifyframework.api.graphql.model.ModelMutation
 import com.amplifyframework.api.graphql.model.ModelQuery
+import com.amplifyframework.api.graphql.model.ModelSubscription
 import com.amplifyframework.api.rest.RestOptions
 import com.amplifyframework.auth.AuthUserAttributeKey
 import com.amplifyframework.auth.cognito.AWSCognitoAuthPlugin
 import com.amplifyframework.auth.options.AuthSignUpOptions
 import com.amplifyframework.core.Amplify
+import com.amplifyframework.datastore.generated.model.Canvas
+import com.amplifyframework.datastore.generated.model.Element
 import com.amplifyframework.datastore.generated.model.Marker
 import com.amplifyframework.storage.s3.AWSS3StoragePlugin
 import com.example.flectamplifyar.App
 import com.example.flectamplifyar.R
+import com.example.flectamplifyar.dbmodel.DBObject
 import com.example.flectamplifyar.helper.CameraConfigHelper
 import com.example.flectamplifyar.helper.CameraPermissionHelper
 import com.example.flectamplifyar.helper.DisplayRotationHelper
 import com.example.flectamplifyar.helper.SnackbarHelper.showError
 import com.example.flectamplifyar.helper.TapHelper
+import com.example.flectamplifyar.model.StrokeProvider
 import com.google.ar.core.*
 import com.google.ar.core.exceptions.*
+import com.google.gson.Gson
 import kotlinx.android.synthetic.main.arfragment.*
 import kotlinx.android.synthetic.main.arfragment.view.*
 import kotlinx.android.synthetic.main.arfragment_menu.*
@@ -45,16 +54,21 @@ import kotlinx.android.synthetic.main.image_capture_view.*
 import kotlinx.android.synthetic.main.image_capture_view.view.*
 import java.io.File
 import java.util.*
+import javax.vecmath.Vector3f
 
 class ARFragment(): Fragment(){
     companion object {
         private val TAG: String = ARFragment::class.java.getSimpleName()
         val MARKER_WIDTH = 500
         val MARKER_HEIGHT = 500
-
     }
 
+    var markerSelected = false
     var session: Session? = null
+
+    var subscriptionForCanvasCreate: ApiOperation<*>? = null
+    var subscriptionForElementCreate: ApiOperation<*>? = null
+    var subscriptionForElementUpdate: ApiOperation<*>? = null
     private var installRequested = false
     lateinit private var imageDatabase: AugmentedImageDatabase
 
@@ -73,20 +87,67 @@ class ARFragment(): Fragment(){
         return inflater.inflate(R.layout.arfragment, container, false)
     }
 
+    fun setSubscription(){
+        // サブスクリプション設定
+        if(subscriptionForCanvasCreate == null){
+            subscriptionForCanvasCreate = Amplify.API.subscribe(
+                ModelSubscription.onCreate(Canvas::class.java),
+                { Log.i("ApiQuickStart", "Subscription established") },
+                { onCreated ->
+                    Log.i("ApiQuickStart", "Canvas create subscription received: " + onCreated.data)
+                    if(onCreated.data.marker.id == currentMarker?.id){
+                        currentMarker?.canvases?.add(onCreated.data)
+                        Log.e(TAG, "match current marker ${currentMarker!!.canvases.size}")
+                    }else{
+                        Log.e(TAG, "not match current marker ${currentMarker!!.id}, ${onCreated.data.marker.id}")
+                    }
+                },
+                { onFailure -> Log.e("ApiQuickStart", "Subscription failed", onFailure) },
+                { Log.i("ApiQuickStart", "Subscription completed") }
+            )
+        }
+
+        if(subscriptionForElementCreate == null){
+            subscriptionForElementCreate = Amplify.API.subscribe(
+                ModelSubscription.onCreate(Element::class.java),
+                { Log.i("ApiQuickStart", "Subscription established") },
+                { onCreated -> Log.i("ApiQuickStart", "Element create subscription received: " + onCreated.data) },
+                { onFailure -> Log.e("ApiQuickStart", "Subscription failed", onFailure) },
+                { Log.i("ApiQuickStart", "Subscription completed") }
+            )
+        }
+
+        if(subscriptionForElementUpdate == null){
+            subscriptionForElementUpdate = Amplify.API.subscribe(
+                ModelSubscription.onUpdate(Element::class.java),
+                { Log.i("ApiQuickStart", "Subscription established") },
+                { onCreated -> Log.i("ApiQuickStart", "Element update subscription received: " + onCreated.data) },
+                { onFailure -> Log.e("ApiQuickStart", "Subscription failed", onFailure) },
+                { Log.i("ApiQuickStart", "Subscription completed") }
+            )
+        }
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         DisplayRotationHelper.setup(requireActivity())
         TapHelper.setup(requireActivity())
+        StrokeProvider.setup(this)
 
         rSurfaceView.rendererCallbacks = ARFragmentSurfaceRenderer
         ARFragmentSurfaceRenderer.setup(this)
         rSurfaceView.setOnTouchListener(TapHelper)
 
+
+        // 設定した requestKey を元にbundleを受け取る
+        setFragmentResultListener("loadMarkerFragmentResult") { requestKey, bundle ->
+            markerSelected=true
+        }
+
+
+
     }
-
-
 
 
 //        // UI Initialization
@@ -227,8 +288,8 @@ class ARFragment(): Fragment(){
                 CameraConfigHelper.setup(session)
                 session!!.cameraConfig = CameraConfigHelper.getCurrentCameraConfig()
 
-                if(App.getApp().marker != null){
-                    setMarker(App.getApp().marker!!)
+                if(App.getApp().selectedMarkerId != null){
+                    setCurrentMarker(App.getApp().selectedMarkerId!!, App.getApp().selectedMarkerBitmap!!)
                 }
 
             } catch (e: UnavailableArcoreNotInstalledException) {
@@ -295,7 +356,7 @@ class ARFragment(): Fragment(){
 
 
 
-    fun setMarker(bm:Bitmap, ){
+    private fun refreshImageDatabase(bm:Bitmap){
         Log.e(TAG, "setBM!!!!!!!!!!!!!!!")
         val config = session!!.getConfig()
         imageDatabase = AugmentedImageDatabase(session)
@@ -303,12 +364,64 @@ class ARFragment(): Fragment(){
         config.augmentedImageDatabase = imageDatabase
         session!!.configure(config)
         ARFragmentSurfaceRenderer.anchor = null
+
     }
 
 
 
 
+    var currentMarker:Marker? = null
+    fun setCurrentMarker(id:String, bitmap:Bitmap){
+        Log.e("APP","marker id ${id}")
+        App.getApp().selectedMarkerId = id           //TODO id, bitmapはLoadMarker時にFragment間でのデータの受け渡しになるが、ここがうまく作れていない。
+        App.getApp().selectedMarkerBitmap = bitmap
 
+        Amplify.API.query(
+            ModelQuery.get(Marker::class.java, id),
+            { response ->
+                Log.e("---------------------","RESPONSE!: ${response.data}")
+                if(response.data == null){
+                    Log.e("MyAmplifyApp", "Query failure NULL!")
+                    return@query
+                }
+                val marker = response.data
+                currentMarker = marker
+                if(marker.canvases.size==0){
+                    val canvas = Canvas.Builder()
+                        .title("")
+                        .owner("")
+                        .id(UUID.randomUUID().toString())
+                        .marker(marker)
+                        .build()
+
+                    val locations :List<Vector3f> = listOf(Vector3f(3f,4f,5f))
+                    val dbobj = DBObject(DBObject.TYPE.LINE, DBObject.TEXTURE_TYPE.COLOR, Color.RED, "", "", locations)
+                    val json = Gson().toJson(dbobj)
+
+                    val element = Element.builder()
+                        .owner("owner")
+                        .content(json)
+                        .id(UUID.randomUUID().toString())
+                        .canvas(canvas)
+                        .build()
+
+                    Amplify.API.mutate(
+                        ModelMutation.create(canvas),
+                        { response -> Log.i("MyAmplifyApp", "Create Canvas with id: " + response) },
+                        { error -> Log.e("MyAmplifyApp", "Create Canvas failed", error) }
+                    )
+
+                    Amplify.API.mutate(
+                        ModelMutation.create(element),
+                        { response -> Log.i("MyAmplifyApp", "Create element with id: " + response) },
+                        { error -> Log.e("MyAmplifyApp", "Create element failed", error) }
+                    )
+                }
+            },
+            { error -> Log.e("MyAmplifyApp", "Query failure", error) }
+        )
+        refreshImageDatabase(bitmap)
+    }
 
 
 

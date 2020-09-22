@@ -7,6 +7,7 @@ import android.hardware.camera2.CameraManager
 import android.hardware.display.DisplayManager
 import android.view.Display
 import android.view.Surface
+import android.view.WindowManager
 import com.google.ar.core.Session
 
 object DisplayRotationHelper: DisplayManager.DisplayListener{
@@ -22,7 +23,9 @@ object DisplayRotationHelper: DisplayManager.DisplayListener{
     fun setup(context:Context){
         displayManager = context.getSystemService(Context.DISPLAY_SERVICE) as DisplayManager
         cameraManager  = context.getSystemService(Context.CAMERA_SERVICE) as CameraManager
-        display        = context.display!!
+
+        val windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+        display = windowManager.defaultDisplay
     }
 
     fun onResume() {

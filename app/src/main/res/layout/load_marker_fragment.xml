@@ -80,4 +80,13 @@
         app:layout_constraintTop_toTopOf="@+id/guideline6"
         app:srcCompat="@android:drawable/ic_menu_rotate" />
 
+    <ImageButton
+        android:id="@+id/loadMarkerBackButton"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toTopOf="@+id/loadMarkerListView"
+        app:layout_constraintEnd_toStartOf="@+id/loadMarkerRefreshButton"
+        app:layout_constraintTop_toTopOf="@+id/guideline6"
+        app:srcCompat="@drawable/abc_vector_test" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

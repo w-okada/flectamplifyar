@@ -93,6 +93,7 @@ object ARFragmentSurfaceRenderer: RecordableSurfaceView.RendererCallbacks {
 
             TextureCube.setup()
             TextureCube.makeColorTexture(Color.parseColor("#55FF0000"))
+            TextureCube.makeImageTexture(context,  R.drawable.earthpicture)
 
 
             //デプスバッファの有効化
@@ -420,18 +421,22 @@ object ARFragmentSurfaceRenderer: RecordableSurfaceView.RendererCallbacks {
         return uvTransform
     }
 
-    private val mSharedStrokes: MutableMap<String, Stroke> = HashMap() // pair-partner's stroke
     private fun handleTap(frame: Frame, camera: Camera) {
-        val tap = TapHelper.poll()
 
-        if(tap !== null){
-            val mLastTouch = Vector2f(tap.x, tap.y)
-            //addPoint2f(mLastTouch, frame, camera)
-            var point = convertWorldCordPoint(mLastTouch, frame, camera)
-            if (anchor != null) {
-                point = LineUtils.transformPointToPose(point, anchor!!.getPose())
-                StrokeProvider.addNewEvent(tap, point)
+        while(true){
+            val tap = TapHelper.poll()
+            if(tap !== null){
+                val mLastTouch = Vector2f(tap.x, tap.y)
+                //addPoint2f(mLastTouch, frame, camera)
+                var point = convertWorldCordPoint(mLastTouch, frame, camera)
+                if (anchor != null) {
+                    point = LineUtils.transformPointToPose(point, anchor!!.getPose())
+                    StrokeProvider.addNewEvent(tap, point)
+                }
+            }else{
+                break
             }
+
         }
 
     }

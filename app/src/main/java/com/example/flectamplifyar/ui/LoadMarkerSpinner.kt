@@ -145,6 +145,9 @@ class LoadMarkerListView:  ListView{
                     Log.e("---", "LIST MARKER2: ${marker}, ${marker.canvases.size}")
                     for(canvas in marker.canvases){
                         Log.e("---", "LIST MARKER3: ${canvas}")
+                        for(element in canvas.elements){
+                            Log.e("---", "LIST MARKER3.5: ${element}")
+                        }
                     }
 
                     val key = marker.path

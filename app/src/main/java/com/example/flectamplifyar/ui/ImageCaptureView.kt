@@ -41,6 +41,7 @@ class ImageCaptureView: ConstraintLayout {
         return bm!!
     }
     var uploadSucceeded = false
+    var uploadId = ""
 
     override fun onViewAdded(view: View?) {
 
@@ -130,7 +131,7 @@ class ImageCaptureView: ConstraintLayout {
                 // https://issuetracker.google.com/issues/119800853
                 // https://stackoverflow.com/questions/58703451/fragmentcontainerview-as-navhostfragment
                 val arFragment = nav.childFragmentManager.primaryNavigationFragment
-                (arFragment as ARFragment).setMarker(bm!!)
+                (arFragment as ARFragment).setCurrentMarker(uploadId, bm!!)
             }
         }
     }
@@ -149,6 +150,7 @@ class ImageCaptureView: ConstraintLayout {
             { result ->
                 Log.i("MyAmplifyApp", "Successfully uploaded: " + result.getKey())
                 try {
+                    // POSTで画像を登録。
                     val plugin = Amplify.Storage.getPlugin("awsS3StoragePlugin") as AWSS3StoragePlugin
                     val body = "{" +
                             "\"bucket\":\"${plugin.bucketName}\", " +
@@ -167,6 +169,7 @@ class ImageCaptureView: ConstraintLayout {
                         { response ->
                             Log.i("MyAmplifyApp", "POST " + response.data.asString())
                             val score = response.data.asJSONObject()["score"]
+                            uploadId = response.data.asJSONObject()["id"] as String
                             if(score.equals("")){
                                 mHandler.post{
                                     waitUploadingStatusText.text = "can not get enough feature from image"
@@ -205,57 +208,16 @@ class ImageCaptureView: ConstraintLayout {
         )
         Log.e("-----", "START UPLOAD 2")
 
-//        Amplify.Storage.uploadFile(
-//            "${key}_",
-//            exampleFile,
-//            { result ->
-//                Log.i("MyAmplifyApp", "Successfully uploaded: " + result.getKey())
-//                val plugin = Amplify.Storage.getPlugin("awsS3StoragePlugin") as AWSS3StoragePlugin
-//                val body = "{" +
-//                        "\"bucket\":\"${plugin.bucketName}\", " +
-//                        "\"region\":\"${plugin.regionStr}\", " +
-//                        "\"key\":\"${key}\" " +
-//                        "}"
-//                val options: RestOptions = RestOptions.builder()
-//                    .addPath("/markers")
-//                    .addBody(body.toByteArray())
-//                    .build()
-//
-//                Amplify.API.post(options,
-//                    { response -> Log.i("MyAmplifyApp", "POST " + response.data.asString()) },
-//                    { error -> Log.e("MyAmplifyApp", "POST failed", error) }
-//                )
-//
+
+//        Amplify.API.query(
+//            ModelQuery.list(Marker::class.java, Marker.SCORE.gt(0)),
+//            { response ->
+//                for (marker in response.data) {
+//                    Log.i("MyAmplifyApp", "marker ${marker}")
+//                }
 //            },
-//            { error -> Log.e("MyAmplifyApp", "Upload failed", error) }
+//            { error -> Log.e("MyAmplifyApp", "Query failure", error) }
 //        )
-//        Log.e("-----","START UPLOAD 2")
-
-
-//        val marker = Marker.builder().score(11011110).name("abbbbbbb").id("a667841f-a0f2-4e98-bf46-66c68d06135ab").build()
-//        Amplify.API.mutate(
-//            ModelMutation.update(marker),
-//            { response -> Log.i("MyAmplifyApp", "Added Marker with id: " + response) },
-//            { error: ApiException? -> Log.e("MyAmplifyApp", "Create failed", error) }
-//        )
-
-//        fun getTodo(id: String) {
-//            Amplify.API.query(
-//                ModelQuery.get(Marker::class.java, id),
-//                { response -> Log.i("MyAmplifyApp", response.data.name) },
-//                { error -> Log.e("MyAmplifyApp", "Query failed", error) }
-//            )
-//        }
-
-        Amplify.API.query(
-            ModelQuery.list(Marker::class.java, Marker.SCORE.gt(0)),
-            { response ->
-                for (marker in response.data) {
-                    Log.i("MyAmplifyApp", "marker ${marker}")
-                }
-            },
-            { error -> Log.e("MyAmplifyApp", "Query failure", error) }
-        )
     }
 
 

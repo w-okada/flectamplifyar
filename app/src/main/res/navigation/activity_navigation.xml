@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/activity_navigation"
-    app:startDestination="@id/ARFragment"
+    app:startDestination="@id/ARViewFragment"
     >
 
     <fragment
-        android:id="@+id/ARFragment"
+        android:id="@+id/ARViewFragment"
         android:name="com.example.flectamplifyar.ui.ARFragment"
         android:label="FirstFragment">
 
@@ -22,7 +22,7 @@
 
         <action
             android:id="@+id/action_second_to_first"
-            app:destination="@id/ARFragment" />
+            app:destination="@id/ARViewFragment" />
 
     </fragment>
 
