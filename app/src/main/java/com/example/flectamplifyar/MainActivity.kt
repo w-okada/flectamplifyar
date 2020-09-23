@@ -70,146 +70,61 @@ class MainActivity : AppCompatActivity(){
                 val mHandler = Handler(Looper.getMainLooper());
                 val key = "pict/${filename}"
                 Log.e(TAG, "Marker bitmap uploading... ${exampleFile}, ${key}")
-                Amplify.Storage.uploadFile(
-                    key,
-                    exampleFile,
-                    { result ->
-                        Log.i(TAG, "Marker bitmap Successfully uploaded. Next, registering...: ${result}")
-                        try {
-                            // POSTで画像を登録。
-                            val plugin = Amplify.Storage.getPlugin("awsS3StoragePlugin") as AWSS3StoragePlugin
-                            val body = "{" +
-                                    "\"bucket\":\"${plugin.bucketName}\", " +
-                                    "\"region\":\"${plugin.regionStr}\", " +
-                                    "\"key\":\"${key}\", " +
-                                    "\"name\":\"${title}\" " +
-                                    "}"
-                            Log.e(ImageCaptureView.TAG, "regsitering.... POST BODY -> ${body}")
-                            val options: RestOptions = RestOptions.builder()
-                                .addPath("/markers")
-                                .addBody(body.toByteArray())
-                                .build()
-
-                            Amplify.API.post(options,
-                                { response ->
-                                    Log.i(TAG, "POST response -> " + response.data.asString())
-                                    val score = response.data.asJSONObject()["score"].toString().toIntOrNull()
-                                    val uploadId = response.data.asJSONObject()["id"] as String
-
-
-                                    // Scoreの有無で成否を判定
-                                    if(score == null){
-                                        onError("can not get enough feature from image ${score}")
-                                    }else{
-                                        onSuccess(uploadId, score)
-                                    }
-
-                                },
-                                { error ->
-                                    onError("analyzing image failed")
-                                }
-                            )
-                        } catch (e: Exception) {
-                            onError("upload failed")
-                        }
-
+                amplify.uploadFile(key, exampleFile,
+                    {message->
+                        Log.i(TAG, "Marker bitmap Successfully uploaded. Next, registering...: ${message}")
+                        amplify.registerMarker(key, displayName,
+                            {uploadId, score ->
+                                onSuccess(uploadId, score)
+                            },
+                            {message ->
+                                onError("register failed. ${message}")
+                            }
+                        )
                     },
-                    { error -> onError("upload failed") }
+                    {message->
+                        onError("upload failed. ${message}")
+                    }
                 )
             }
 
-            override fun setCurrentMarker(id: String,
-                                          onSuccess:(message:String)-> Unit, onError:((message:String) -> Unit)) {
-                Amplify.API.query(
-                    ModelQuery.get(Marker::class.java, id),
-                    { response ->
-                        Log.e(TAG,"Query Markers response${id}: ${response.data}")
-                        if(response.data == null){
-                            onError("Marker not found! ${id}")
-                            return@query
-                        }
-                        val marker = response.data
-                        currentMarker = marker
-                        if(marker.canvases.size==0){
-                            val canvas = Canvas.Builder()
-                                .title("")
-                                .owner("")
-                                .id(UUID.randomUUID().toString())
-                                .marker(marker)
-                                .build()
 
-                            Amplify.API.mutate(
-                                ModelMutation.create(canvas),
-                                { response ->
-                                    onSuccess("Marker[${id}] first canvas created ${response}")
-                                },
-                                { error ->
-                                    onError("Marker[${id}] first canvas create failed ${error}")
-                                }
-                            )
+            override fun setCurrentMarker(id: String, onSuccess:(message:String)-> Unit, onError:((message:String) -> Unit)) {
+                amplify.queryMarker(id,
+                    {marker, canvas ->
+                        currentMarker = marker  // set current marker here
+                        if(canvas!=null){
+                            marker.canvases.add(canvas)
                         }
+                        onSuccess("setCurrent Marker ${id} success. Marker:${marker}, Canvas:${canvas}")
                     },
-                    { error ->
-                        onError("Marker[${id}] query failed ${error}")
+                    {message ->
+                        onError("setCurrent Marker ${id} failed. ${message}")
                     }
                 )
-
             }
 
             override fun getMarkers(onSuccess: (markers: List<Marker>) -> Unit, onError: (message: String) -> Unit) {
-
                 Log.e(TAG, "start get markers")
-                Amplify.API.query(
-                    ModelQuery.list(Marker::class.java, Marker.SCORE.gt(20)),
-                    { response ->
-                        val tmpList = mutableListOf<Marker>()
-                        Log.e(TAG, "LIST MARKER[all]: ${response}")
-                        for (marker in response.data) {
-                            tmpList.add(marker)
-                            Log.e(TAG, "LIST MARKER[Marker]: ${marker}, ${marker.canvases.size}")
-                            for (canvas in marker.canvases) {
-                                Log.e(TAG, "LIST MARKER[Canvas]: ${canvas}")
-                                for (element in canvas.elements) {
-                                    Log.e("---", "LIST MARKER[Element]: ${element}")
-                                }
-                            }
-                        }
-                        onSuccess(tmpList)
+                amplify.queryMarkers(20,
+                    {markers ->
+                        onSuccess(markers)
                     },
-                    { error ->
-                        onError("Query Marker failed. ${error}")
+                    {message ->
+                        onError("get Markers failed. ${message}")
                     }
                 )
-
             }
 
             override fun updateDB(uuid:String, json: String, add: Boolean, onSuccess: (message: String) -> Unit, onError: (message: String) -> Unit) {
-                try {
-                    val element = Element.builder()
-                        .owner("owner")
-                        .content(json)
-                        .id(uuid)
-                        .canvas(currentMarker!!.canvases[0])
-                        .build()
-                    if (add == true) {
-                        Amplify.API.mutate(
-                            ModelMutation.create(element),
-                            { response -> Log.i(TAG, "Create element with id: " + response) },
-                            { error -> Log.e(TAG, "Create element failed", error) }
-                        )
-                    } else {
-                        Amplify.API.mutate(
-                            ModelMutation.update(element),
-                            { response -> Log.i("MyAmplifyApp", "Updated element with id: " + response) },
-                            { error -> Log.e("MyAmplifyApp", "Update element failed", error) }
-                        )
-                    }
-                }catch(e:Exception){
-                    Log.e(TAG, "${e}")
-                    Log.e(TAG, "CurrentMarker: ${currentMarker}")
-                    Log.e(TAG, "CureentCanvs: ${currentMarker!!.canvases}")
-
-                }
+                amplify.updateElement(user, currentMarker!!.canvases[0], uuid, json, add,
+                    {message ->
+                        Log.i(TAG, "updateDB success. ${message}")
+                    },
+                    {message ->
+                        Log.e(TAG, "updateDB failed. ${message}")
+                    },
+                )
             }
         }
 
