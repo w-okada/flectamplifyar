@@ -3,15 +3,9 @@ package com.example.flectamplifyar.ui
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Canvas
-import android.graphics.Paint
 import android.util.AttributeSet
 import android.util.Log
-import android.view.LayoutInflater
 import android.view.View
-import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.constraintlayout.widget.ConstraintSet
-import com.example.flectamplifyar.R
-import kotlinx.android.synthetic.main.arfragment.view.*
 import java.util.*
 
 

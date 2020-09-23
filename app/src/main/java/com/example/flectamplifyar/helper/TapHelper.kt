@@ -34,8 +34,6 @@ object TapHelper: View.OnTouchListener{
     }
 
     override fun onTouch(view: View, motionEvent: MotionEvent): Boolean {
-
-        Log.e("0000000","Clicked")
         queuedSingleTaps.offer(motionEvent)
         return true
     }

@@ -46,12 +46,14 @@ import com.example.flectamplifyar.model.StrokeProvider
 import com.google.ar.core.*
 import com.google.ar.core.exceptions.*
 import com.google.gson.Gson
+import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.arfragment.*
 import kotlinx.android.synthetic.main.arfragment.view.*
 import kotlinx.android.synthetic.main.arfragment_menu.*
 import kotlinx.android.synthetic.main.arfragment_menu.view.*
 import kotlinx.android.synthetic.main.image_capture_view.*
 import kotlinx.android.synthetic.main.image_capture_view.view.*
+import kotlinx.android.synthetic.main.load_marker_view.view.*
 import java.io.File
 import java.util.*
 import javax.vecmath.Vector3f
@@ -63,12 +65,18 @@ class ARFragment(): Fragment(){
         val MARKER_HEIGHT = 500
     }
 
-    var markerSelected = false
+    interface AROperationListener{
+        fun uploadMarker(bitmap:Bitmap, filename:String, displayName:String, onSuccess:((uploadId:String, score:Int) -> Unit), onError:((message:String) -> Unit))
+        fun setCurrentMarker(id:String, onSuccess:((message:String) -> Unit), onError:((message:String) -> Unit))
+        fun getMarkers(onSuccess:((markers:List<Marker>) -> Unit), onError:((message:String) -> Unit))
+        fun updateDB(uuid:String, json:String, add:Boolean,  onSuccess:((message:String) -> Unit), onError:((message:String) -> Unit))
+    }
+
+    var arOperationListener:AROperationListener? = null
+
     var session: Session? = null
 
-    var subscriptionForCanvasCreate: ApiOperation<*>? = null
-    var subscriptionForElementCreate: ApiOperation<*>? = null
-    var subscriptionForElementUpdate: ApiOperation<*>? = null
+
     private var installRequested = false
     lateinit private var imageDatabase: AugmentedImageDatabase
 
@@ -79,176 +87,46 @@ class ARFragment(): Fragment(){
         val param = a.getString(R.styleable.fragment_param);
         a.recycle()
         Log.e(TAG, "Inflateing... ")
-        Log.e(TAG, "    Param: ${param}")
     }
 
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle? ): View {
+        Log.e(TAG, "onCreateView... ")
         return inflater.inflate(R.layout.arfragment, container, false)
     }
 
-    fun setSubscription(){
-        // サブスクリプション設定
-        if(subscriptionForCanvasCreate == null){
-            subscriptionForCanvasCreate = Amplify.API.subscribe(
-                ModelSubscription.onCreate(Canvas::class.java),
-                { Log.i("ApiQuickStart", "Subscription established") },
-                { onCreated ->
-                    Log.i("ApiQuickStart", "Canvas create subscription received: " + onCreated.data)
-                    if(onCreated.data.marker.id == currentMarker?.id){
-                        currentMarker?.canvases?.add(onCreated.data)
-                        Log.e(TAG, "match current marker ${currentMarker!!.canvases.size}")
-                    }else{
-                        Log.e(TAG, "not match current marker ${currentMarker!!.id}, ${onCreated.data.marker.id}")
-                    }
-                },
-                { onFailure -> Log.e("ApiQuickStart", "Subscription failed", onFailure) },
-                { Log.i("ApiQuickStart", "Subscription completed") }
-            )
-        }
-
-        if(subscriptionForElementCreate == null){
-            subscriptionForElementCreate = Amplify.API.subscribe(
-                ModelSubscription.onCreate(Element::class.java),
-                { Log.i("ApiQuickStart", "Subscription established") },
-                { onCreated -> Log.i("ApiQuickStart", "Element create subscription received: " + onCreated.data) },
-                { onFailure -> Log.e("ApiQuickStart", "Subscription failed", onFailure) },
-                { Log.i("ApiQuickStart", "Subscription completed") }
-            )
-        }
-
-        if(subscriptionForElementUpdate == null){
-            subscriptionForElementUpdate = Amplify.API.subscribe(
-                ModelSubscription.onUpdate(Element::class.java),
-                { Log.i("ApiQuickStart", "Subscription established") },
-                { onCreated -> Log.i("ApiQuickStart", "Element update subscription received: " + onCreated.data) },
-                { onFailure -> Log.e("ApiQuickStart", "Subscription failed", onFailure) },
-                { Log.i("ApiQuickStart", "Subscription completed") }
-            )
-        }
-    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        Log.e(TAG, "onViewCreated... ")
 
         DisplayRotationHelper.setup(requireActivity())
         TapHelper.setup(requireActivity())
         StrokeProvider.setup(this)
 
+        // recordableSurfaceViewのSetup
         rSurfaceView.rendererCallbacks = ARFragmentSurfaceRenderer
         ARFragmentSurfaceRenderer.setup(this)
         rSurfaceView.setOnTouchListener(TapHelper)
 
-
-        // 設定した requestKey を元にbundleを受け取る
-        setFragmentResultListener("loadMarkerFragmentResult") { requestKey, bundle ->
-            markerSelected=true
-        }
-
-
-
+        // menuController Setup
+        menuController.arFragment = this
+        // ImageCaptureViewSetup
+        imageCaptureView2.arFragment=this
+        // LoadMarkerViewSetup
+        loadMarkerView2.arFragment = this
     }
 
 
-//        // UI Initialization
-//        setContentView(R.layout.activity_main)
-//
-//        TrackingStateHelper.setup(this)
-
-//        glSurfaceView.setOnTouchListener(TapHelper)
-
-//        s.preserveEGLContextOnPause = true
-//        s.setEGLContextClientVersion(2)
-//        s.setEGLConfigChooser(8, 8, 8, 8, 16, 0)// Alpha used for plane blending.
-//        ARFragmentRenderer.setup(this)
-//        s.setRenderer(ARFragmentRenderer)
-//        s.renderMode = GLSurfaceView.RENDERMODE_CONTINUOUSLY
-//        s.setWillNotDraw(false)
-
-
-
-//        val spinner = findViewById<Spinner>(R.id.menu)
-//
-//        captureMarker.setOnClickListener {
-//            captureNextFrame = true
-//            menu.visibility = when(menu.visibility){
-//                View.GONE -> View.VISIBLE
-//                View.VISIBLE -> View.GONE
-//                else -> View.VISIBLE
-//            }
-//        }
-//
-//
-//        val spinnerItems = arrayOf(
-//            "Select", "Yuka", "Kurumi", "Mai", "Miki", "Saya",
-//            "Toko", "Nagi", "Yuyu", "Yumiko", "Katakuriko"
-//        )
-//
-//        val spinnerImages = arrayOf(
-//            "transparent", "yuka", "kurumi", "mai", "miki", "saya",
-//            "toko", "nagi", "yuyu", "yumiko", "katakuriko"
-//        )
-//
-//
-//        val adapter = MarkerSpinnerAdapter(this.applicationContext, spinnerItems, spinnerImages)
-//
-//        spinner.adapter = adapter
-//
-//
-//        // リスナーを登録
-//        spinner.onItemSelectedListener = object : OnItemSelectedListener {
-//            //　アイテムが選択された時
-//            override fun onItemSelected(
-//                parent: AdapterView<*>?,
-//                viw: View, position: Int, id: Long
-//            ) {
-//                Log.e("----------------------","aaaaaaaaaaa")
-//            }
-//
-//            //　アイテムが選択されなかった
-//            override fun onNothingSelected(parent: AdapterView<*>?) {}
-//        }
-//
-////
-////        var items = arrayOf("Drawing", "Load", "")
-////        var adapter = ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, items);
-////        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-////        menu.adapter=adapter
-////
-////        menu.setOnItemSelectedListener(object : AdapterView.OnItemSelectedListener {
-////            //　アイテムが選択された時
-////            override fun onItemSelected(
-////                parent: AdapterView<*>,
-////                view: View?, position: Int, id: Long
-////            ) {
-////                val menu: Spinner = parent as Spinner
-////                val item = menu.getSelectedItem() as String
-////            }
-////
-////            //　アイテムが選択されなかった
-////            override fun onNothingSelected(parent: AdapterView<*>?) {
-////                //
-////            }
-////        })
-//
-//        // Prerequisit
-//        installRequested = false
-//
-//
-
-
-
-
-
-
-
     override fun onResume() {
-        Log.e(TAG,"onResume!")
+        Log.e(TAG,"onResume....")
         super.onResume()
         if (session == null) {
             var exception: Exception? = null
             var message: String? = null
 
+
+            // ARCore 設定
             try {
                 when (ArCoreApk.getInstance().requestInstall(requireActivity(), !installRequested)) {
                     ArCoreApk.InstallStatus.INSTALL_REQUESTED -> {
@@ -288,9 +166,6 @@ class ARFragment(): Fragment(){
                 CameraConfigHelper.setup(session)
                 session!!.cameraConfig = CameraConfigHelper.getCurrentCameraConfig()
 
-                if(App.getApp().selectedMarkerId != null){
-                    setCurrentMarker(App.getApp().selectedMarkerId!!, App.getApp().selectedMarkerBitmap!!)
-                }
 
             } catch (e: UnavailableArcoreNotInstalledException) {
                 message = "Please install ARCore"
@@ -319,6 +194,8 @@ class ARFragment(): Fragment(){
             }
         }
 
+
+        // ARCore 開始
         try {
             session!!.resume()
         } catch (e: CameraNotAvailableException) {
@@ -327,7 +204,6 @@ class ARFragment(): Fragment(){
             return
         }
         rSurfaceView.resume()
-        //glSurfaceView.onResume()
         DisplayRotationHelper.onResume()
     }
 
@@ -354,74 +230,56 @@ class ARFragment(): Fragment(){
         }
     }
 
-
-
-    private fun refreshImageDatabase(bm:Bitmap){
-        Log.e(TAG, "setBM!!!!!!!!!!!!!!!")
+    fun refreshImageDatabase(bitmap:Bitmap){
+        Log.e(TAG, "setBM ${bitmap}")
         val config = session!!.getConfig()
         imageDatabase = AugmentedImageDatabase(session)
-        imageDatabase.addImage("mmm_${session!!.config.augmentedImageDatabase.numImages}",bm, 0.1f)
+        imageDatabase.addImage("mmm_${session!!.config.augmentedImageDatabase.numImages}",bitmap, 0.1f)
         config.augmentedImageDatabase = imageDatabase
         session!!.configure(config)
         ARFragmentSurfaceRenderer.anchor = null
-
+        StrokeProvider.initialize()
     }
 
 
 
 
-    var currentMarker:Marker? = null
-    fun setCurrentMarker(id:String, bitmap:Bitmap){
-        Log.e("APP","marker id ${id}")
-        App.getApp().selectedMarkerId = id           //TODO id, bitmapはLoadMarker時にFragment間でのデータの受け渡しになるが、ここがうまく作れていない。
-        App.getApp().selectedMarkerBitmap = bitmap
-
-        Amplify.API.query(
-            ModelQuery.get(Marker::class.java, id),
-            { response ->
-                Log.e("---------------------","RESPONSE!: ${response.data}")
-                if(response.data == null){
-                    Log.e("MyAmplifyApp", "Query failure NULL!")
-                    return@query
-                }
-                val marker = response.data
-                currentMarker = marker
-                if(marker.canvases.size==0){
-                    val canvas = Canvas.Builder()
-                        .title("")
-                        .owner("")
-                        .id(UUID.randomUUID().toString())
-                        .marker(marker)
-                        .build()
-
-                    val locations :List<Vector3f> = listOf(Vector3f(3f,4f,5f))
-                    val dbobj = DBObject(DBObject.TYPE.LINE, DBObject.TEXTURE_TYPE.COLOR, Color.RED, "", "", locations)
-                    val json = Gson().toJson(dbobj)
-
-                    val element = Element.builder()
-                        .owner("owner")
-                        .content(json)
-                        .id(UUID.randomUUID().toString())
-                        .canvas(canvas)
-                        .build()
-
-                    Amplify.API.mutate(
-                        ModelMutation.create(canvas),
-                        { response -> Log.i("MyAmplifyApp", "Create Canvas with id: " + response) },
-                        { error -> Log.e("MyAmplifyApp", "Create Canvas failed", error) }
-                    )
-
-                    Amplify.API.mutate(
-                        ModelMutation.create(element),
-                        { response -> Log.i("MyAmplifyApp", "Create element with id: " + response) },
-                        { error -> Log.e("MyAmplifyApp", "Create element failed", error) }
-                    )
-                }
-            },
-            { error -> Log.e("MyAmplifyApp", "Query failure", error) }
-        )
-        refreshImageDatabase(bitmap)
-    }
+//    var currentMarker:Marker? = null
+//    fun setCurrentMarker(id:String, bitmap:Bitmap){
+//        Log.e("APP","marker id ${id}")
+////        App.getApp().selectedMarkerId = id           //TODO id, bitmapはLoadMarker時にFragment間でのデータの受け渡しになるが、ここがうまく作れていない。
+////        App.getApp().selectedMarkerBitmap = bitmap
+//
+//        Amplify.API.query(
+//            ModelQuery.get(Marker::class.java, id),
+//            { response ->
+//                Log.e("---------------------","RESPONSE!: ${response.data}")
+//                if(response.data == null){
+//                    Log.e("MyAmplifyApp", "Query failure NULL!")
+//                    return@query
+//                }
+//                val marker = response.data
+//                currentMarker = marker
+//                if(marker.canvases.size==0){
+//                    val canvas = Canvas.Builder()
+//                        .title("")
+//                        .owner("")
+//                        .id(UUID.randomUUID().toString())
+//                        .marker(marker)
+//                        .build()
+//
+//                    Amplify.API.mutate(
+//                        ModelMutation.create(canvas),
+//                        { response -> Log.i("MyAmplifyApp", "Create Canvas with id: " + response) },
+//                        { error -> Log.e("MyAmplifyApp", "Create Canvas failed", error) }
+//                    )
+//                }
+//            },
+//            { error -> Log.e("MyAmplifyApp", "Query failure", error) }
+//        )
+//        refreshImageDatabase(bitmap)
+//
+//    }
 
 
 

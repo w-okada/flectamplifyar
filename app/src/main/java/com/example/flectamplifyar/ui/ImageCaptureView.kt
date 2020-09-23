@@ -10,19 +10,10 @@ import android.view.LayoutInflater
 import android.view.PixelCopy
 import android.view.View
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.navigation.fragment.NavHostFragment
-import com.amplifyframework.api.graphql.model.ModelQuery
-import com.amplifyframework.api.rest.RestOptions
-import com.amplifyframework.core.Amplify
-import com.amplifyframework.datastore.generated.model.Marker
-import com.amplifyframework.storage.s3.AWSS3StoragePlugin
-import com.example.flectamplifyar.App
 import com.example.flectamplifyar.R
 import kotlinx.android.synthetic.main.arfragment.view.*
 import kotlinx.android.synthetic.main.image_capture_view.view.*
-import java.io.File
 import java.util.*
 
 class ImageCaptureView: ConstraintLayout {
@@ -34,17 +25,20 @@ class ImageCaptureView: ConstraintLayout {
     constructor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : super(context, attrs, defStyleAttr) {
         val inflater = LayoutInflater.from(context)
         inflater.inflate(R.layout.image_capture_view, this, true)
+
     }
 
-    var bm:Bitmap? = null
-    fun getBitmap():Bitmap{
-        return bm!!
-    }
+    lateinit var arFragment:ARFragment
+
+
+    var bitmap:Bitmap? = null
+
     var uploadSucceeded = false
     var uploadId = ""
 
     override fun onViewAdded(view: View?) {
 
+        // オーバレイの描画処理を登録、
         captureView.addCallback(
             object : OverlayView.DrawCallback {
                 override fun drawCallback(canvas: Canvas) {
@@ -62,7 +56,6 @@ class ImageCaptureView: ConstraintLayout {
                         p)
 
                     p.apply {
-//                        xfermode = PorterDuffXfermode( PorterDuff.Mode.DST_OVER)
                         xfermode = PorterDuffXfermode( PorterDuff.Mode.SRC_OVER)
                         style = Paint.Style.STROKE
                         strokeWidth = 25f
@@ -76,17 +69,18 @@ class ImageCaptureView: ConstraintLayout {
             }
         )
 
+        // CaptureViewがクリックされたときの処理。
         val mHandler = Handler(Looper.getMainLooper());
         captureView.setOnClickListener {
             val bitmap = Bitmap.createBitmap(rootView.rSurfaceView.width, rootView.rSurfaceView.height, Bitmap.Config.ARGB_8888)
             PixelCopy.request(rootView.rSurfaceView, bitmap,
                 { result ->
                     if (result == PixelCopy.SUCCESS) {
-                        bm = Bitmap.createBitmap(bitmap, bitmap.width/2 - ARFragment.MARKER_WIDTH /2, bitmap.height/2 - ARFragment.MARKER_HEIGHT /2, ARFragment.MARKER_WIDTH, ARFragment.MARKER_HEIGHT);
+                        this.bitmap = Bitmap.createBitmap(bitmap, bitmap.width/2 - ARFragment.MARKER_WIDTH /2, bitmap.height/2 - ARFragment.MARKER_HEIGHT /2, ARFragment.MARKER_WIDTH, ARFragment.MARKER_HEIGHT);
                         markerCaptureConfirmLayout.visibility = View.VISIBLE
-                        confirmingMarkerImage.setImageBitmap(bm)
+                        confirmingMarkerImage.setImageBitmap(this.bitmap)
                     } else {
-                        Toast.makeText(context, "失敗しました", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "Failed to generate image bitmap.", Toast.LENGTH_SHORT).show()
                     }
                 },
                 mHandler
@@ -97,18 +91,41 @@ class ImageCaptureView: ConstraintLayout {
             cancelMarkerButton.visibility = View.VISIBLE
 
         }
-        markerCaptureConfirmLayout.setOnClickListener{}
-        cancelMarkerButton.setOnClickListener{
-            markerCaptureConfirmLayout.visibility = View.INVISIBLE
-        }
+        // Exitボタンがクリックされたときの処理
         exitCaptureMarkerButton.setOnClickListener{
             markerCaptureConfirmLayout.visibility = View.INVISIBLE
             imageCaptureView.visibility = View.INVISIBLE
+            waitUploadingExitButton.visibility = View.INVISIBLE
+            waitUploadingStatusText.visibility = View.INVISIBLE
         }
 
+        // Cancelボタンがクリックされたときの処理
+        cancelMarkerButton.setOnClickListener{
+            markerCaptureConfirmLayout.visibility = View.INVISIBLE
+        }
+
+        // Uploadボタンがクリックされたときの処理
         uploadMarkerButton.setOnClickListener {
             val uuidString = UUID.randomUUID().toString()
-            uploadMarker(bm!!, "${uuidString}.jpg", editTextMarkerName.text.toString())
+            arFragment.arOperationListener!!.uploadMarker(
+                bitmap!!, "${uuidString}.jpg", editTextMarkerName.text.toString(),
+                {uploadId, score ->
+                    arFragment.requireActivity().runOnUiThread({
+                        waitUploadingStatusText.text = "upload image succeeded. Score: ${score}"
+                        waitUploadingExitButton.visibility = View.VISIBLE
+                        waitUploadingProgressBar.visibility = View.INVISIBLE
+                    })
+                    this.uploadId   = uploadId
+                    uploadSucceeded = true
+                },
+                {message ->
+                    arFragment.requireActivity().runOnUiThread({
+                        waitUploadingStatusText.text = message
+                        waitUploadingExitButton.visibility = View.VISIBLE
+                        waitUploadingProgressBar.visibility = View.INVISIBLE
+                    })
+                }
+            )
             waitUploadingStatusText.text = "uploading...."
 
             editTextMarkerName.visibility = View.INVISIBLE
@@ -117,8 +134,6 @@ class ImageCaptureView: ConstraintLayout {
 
             waitUploadingStatusText.visibility = View.VISIBLE
             waitUploadingProgressBar.visibility = View.VISIBLE
-
-            uploadSucceeded = false
         }
 
         waitUploadingExitButton.setOnClickListener{
@@ -127,99 +142,18 @@ class ImageCaptureView: ConstraintLayout {
             waitUploadingExitButton.visibility = View.INVISIBLE
             waitUploadingStatusText.visibility = View.INVISIBLE
             if(uploadSucceeded){
-                val nav = (context as AppCompatActivity).supportFragmentManager.findFragmentById(R.id.fragment_container_view) as NavHostFragment
-                // https://issuetracker.google.com/issues/119800853
-                // https://stackoverflow.com/questions/58703451/fragmentcontainerview-as-navhostfragment
-                val arFragment = nav.childFragmentManager.primaryNavigationFragment
-                (arFragment as ARFragment).setCurrentMarker(uploadId, bm!!)
+                uploadSucceeded = false
+                arFragment.arOperationListener!!.setCurrentMarker(uploadId,
+                    {message ->
+                        Log.e(TAG,"upload marker success. ${message}")
+                        arFragment.refreshImageDatabase(bitmap!!)
+                    },
+                    {message ->
+                        Log.e(TAG,"upload marker failed. ${message}")
+                    }
+                )
             }
         }
     }
-
-
-
-    private fun uploadMarker(bm: Bitmap, filename: String, title:String){
-        val exampleFile = File(App.getApp().applicationContext.filesDir, "${filename}")
-        bm.compress(Bitmap.CompressFormat.JPEG, 100, exampleFile.outputStream())
-        val mHandler = Handler(Looper.getMainLooper());
-        val key = "pict/${filename}"
-        Log.e("-----", "START UPLOAD")
-        Amplify.Storage.uploadFile(
-            "${key}",
-            exampleFile,
-            { result ->
-                Log.i("MyAmplifyApp", "Successfully uploaded: " + result.getKey())
-                try {
-                    // POSTで画像を登録。
-                    val plugin = Amplify.Storage.getPlugin("awsS3StoragePlugin") as AWSS3StoragePlugin
-                    val body = "{" +
-                            "\"bucket\":\"${plugin.bucketName}\", " +
-                            "\"region\":\"${plugin.regionStr}\", " +
-                            "\"key\":\"${key}\", " +
-                            "\"name\":\"${title}\" " +
-                            "}"
-                    Log.e(TAG, "BODY !! ${body}")
-                    Log.e(TAG, "BODY !! ${title}")
-                    val options: RestOptions = RestOptions.builder()
-                        .addPath("/markers")
-                        .addBody(body.toByteArray())
-                        .build()
-
-                    Amplify.API.post(options,
-                        { response ->
-                            Log.i("MyAmplifyApp", "POST " + response.data.asString())
-                            val score = response.data.asJSONObject()["score"]
-                            uploadId = response.data.asJSONObject()["id"] as String
-                            if(score.equals("")){
-                                mHandler.post{
-                                    waitUploadingStatusText.text = "can not get enough feature from image"
-                                    waitUploadingExitButton.visibility = View.VISIBLE
-                                    waitUploadingProgressBar.visibility = View.INVISIBLE
-                                }
-                            }else {
-                                mHandler.post {
-                                    waitUploadingStatusText.text = "upload image succeeded. Score: ${score}"
-                                    waitUploadingExitButton.visibility = View.VISIBLE
-                                    waitUploadingProgressBar.visibility = View.INVISIBLE
-                                }
-                                uploadSucceeded = true
-                            }
-                        },
-                        { error ->
-                            Log.e("MyAmplifyApp", "POST failed", error)
-                            mHandler.post{
-                                waitUploadingStatusText.text = "analyzing image failed"
-                                waitUploadingExitButton.visibility = View.VISIBLE
-                                waitUploadingProgressBar.visibility = View.INVISIBLE
-                            }
-                        }
-                    )
-                } catch (e: Exception) {
-                    mHandler.post{
-                        waitUploadingStatusText.text = "upload failed"
-                        waitUploadingExitButton.visibility = View.VISIBLE
-                        waitUploadingProgressBar.visibility = View.INVISIBLE
-                    }
-                    Log.e("---------------------------", " >  ${e}")
-                }
-
-            },
-            { error -> Log.e("MyAmplifyApp", "Upload failed", error) }
-        )
-        Log.e("-----", "START UPLOAD 2")
-
-
-//        Amplify.API.query(
-//            ModelQuery.list(Marker::class.java, Marker.SCORE.gt(0)),
-//            { response ->
-//                for (marker in response.data) {
-//                    Log.i("MyAmplifyApp", "marker ${marker}")
-//                }
-//            },
-//            { error -> Log.e("MyAmplifyApp", "Query failure", error) }
-//        )
-    }
-
-
 
 }

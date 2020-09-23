@@ -8,7 +8,7 @@ import java.util.*
 import javax.vecmath.Vector3f
 
 
-class Stroke(var UUID:String) {
+class Stroke(var uuid:String) {
 
     private var points = ArrayList<Vector3f>()
 
@@ -226,7 +226,7 @@ class Stroke(var UUID:String) {
     }
 
     fun copy(): Stroke {
-        val copy = Stroke(UUID)
+        val copy = Stroke(uuid)
         copy.creator = creator
         copy.lineWidth = lineWidth
         copy.points = ArrayList(points)

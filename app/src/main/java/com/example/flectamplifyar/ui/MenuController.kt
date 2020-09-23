@@ -6,17 +6,13 @@ import android.util.AttributeSet
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
-import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.navigation.Navigation.findNavController
-import androidx.navigation.findNavController
-import androidx.navigation.fragment.findNavController
 import com.amplifyframework.core.Amplify
 import com.example.flectamplifyar.R
-import kotlinx.android.synthetic.main.arfragment_menu.*
+import kotlinx.android.synthetic.main.arfragment.*
 import kotlinx.android.synthetic.main.arfragment_menu.view.*
 import kotlinx.android.synthetic.main.image_capture_view.*
-import kotlinx.android.synthetic.main.image_capture_view.view.*
+import kotlinx.android.synthetic.main.load_marker_view.*
 
 
 class MenuController: ConstraintLayout {
@@ -27,56 +23,63 @@ class MenuController: ConstraintLayout {
         inflater.inflate(R.layout.arfragment_menu, this, true)
     }
 
+    lateinit var arFragment:ARFragment
+
     enum class operation{
         toShow, toHide
     }
 
     override fun onViewAdded(view: View?) {
         super.onViewAdded(view)
-        showMenuButton.setOnClickListener(object:View.OnClickListener{
-            override fun onClick(p0: View?) {
-                val Operation = when(menuView.visibility){
-                    View.VISIBLE -> operation.toHide
-                    View.INVISIBLE -> operation.toShow
-                    else -> operation.toHide
-                }
 
-                showMenuButton.text = when(Operation){
-                    operation.toHide -> context.getString(R.string.menu_button_text_enter)
-                    operation.toShow -> context.getString(R.string.menu_button_text_exit)
-                }
-
-                menuView.visibility = when(Operation){
-                    operation.toHide -> View.INVISIBLE
-                    operation.toShow -> View.VISIBLE
-                }
+        // Menu/Exitボタンが押されたときの処理
+        showMenuButton.setOnClickListener{
+            // Menu処理/Exit処理の切り分け
+            val Operation = when(menuView.visibility){
+                View.VISIBLE -> operation.toHide
+                View.INVISIBLE -> operation.toShow
+                else -> operation.toHide
             }
-        })
 
-        loadMarkerButton.setOnClickListener{
-            findNavController().navigate(R.id.action_first_to_second)
+            //// Menu/Exitボタンの切り替え
+            showMenuButton.text = when(Operation){
+                operation.toHide -> context.getString(R.string.menu_button_text_enter)
+                operation.toShow -> context.getString(R.string.menu_button_text_exit)
+            }
+
+            //// メニューダイアログの表示/非表示切り替え
+            menuView.visibility = when(Operation){
+                operation.toHide -> View.INVISIBLE
+                operation.toShow -> View.VISIBLE
+            }
         }
 
-        captureMarkerButton.setOnClickListener(object:View.OnClickListener{
-            override fun onClick(p0: View?) {
-                showMenuButton.text = context.getString(R.string.menu_button_text_enter)
-                menuView.visibility = View.INVISIBLE
-                rootView.imageCaptureView.visibility = View.VISIBLE
+        // LoadMarkerボタンがクリックされあたときの処理
+        loadMarkerButton.setOnClickListener{
+            arFragment.loadMarkerView2.generateListView() // ここでmarker listを生成するのはいけてない。visibilityの変化をトリガにしたいところ
+            showMenuButton.text = context.getString(R.string.menu_button_text_enter)
+            menuView.visibility = View.INVISIBLE
+            arFragment.loadMarkerView.visibility = View.VISIBLE // OK
+        }
 
-            }
-        })
+        // Captureボタンがクリックされたときの処理
+        captureMarkerButton.setOnClickListener{
+            showMenuButton.text = context.getString(R.string.menu_button_text_enter)
+            menuView.visibility = View.INVISIBLE
+            arFragment.imageCaptureView.visibility = View.VISIBLE // OK
+            //imageCaptureView.visibility = View.VISIBLE // NG Nullpointer
+            //rootView.imageCaptureView.visibility = View.VISIBLE // OK
+        }
 
+
+        // サインアウトボタンがクリックされたときの処理
         sighOutButton.setOnClickListener{
             Amplify.Auth.signOut(
                 { Log.i("AuthQuickstart", "Signed out successfully") },
                 { error -> Log.e("AuthQuickstart", error.toString()) }
             )
-            (context as AppCompatActivity).finish()
-            (context as AppCompatActivity).moveTaskToBack(true);
+            showMenuButton.text = "MENU"
+            menuView.visibility = View.INVISIBLE
         }
-
-
-
-
     }
 }

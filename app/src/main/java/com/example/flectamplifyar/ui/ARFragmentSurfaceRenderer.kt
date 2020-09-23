@@ -17,6 +17,7 @@ import com.example.flectamplifyar.model.StrokeProvider
 import com.example.flectamplifyar.rendering.*
 import com.google.ar.core.*
 import com.uncorkedstudios.android.view.recordablesurfaceview.RecordableSurfaceView
+import kotlinx.android.synthetic.main.arfragment.*
 import kotlinx.android.synthetic.main.image_capture_view.*
 import java.io.IOException
 import javax.vecmath.Vector2f

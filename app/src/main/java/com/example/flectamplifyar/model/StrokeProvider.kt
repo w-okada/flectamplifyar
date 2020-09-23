@@ -27,9 +27,7 @@ object StrokeProvider{
 
     fun setup(arFragment: ARFragment){
         this.arFragment = arFragment
-
     }
-
 
     fun addNewEvent(motionEvent:MotionEvent, newPoint:Vector3f){
         when(motionEvent.action) {
@@ -81,38 +79,18 @@ object StrokeProvider{
 
     private fun updateDB(stroke: Stroke, add:Boolean=false){
         val dbobj:DBObject
+        val json:String
         lock.read {
             dbobj= DBObject(DBObject.TYPE.LINE, DBObject.TEXTURE_TYPE.COLOR, Color.RED, "", "", stroke.getPoints())
+            json = Gson().toJson(dbobj)
         }
-        val json = Gson().toJson(dbobj)
+        arFragment.arOperationListener!!.updateDB(stroke.uuid, json, add, {}, {})
+    }
 
-        try {
-            val element = Element.builder()
-                .owner("owner")
-                .content(json)
-                .id(stroke.UUID)
-                .canvas(arFragment.currentMarker!!.canvases[0])
-                .build()
-            if (add == true) {
-                Amplify.API.mutate(
-                    ModelMutation.create(element),
-                    { response -> Log.i("MyAmplifyApp", "Create element with id: " + response) },
-                    { error -> Log.e("MyAmplifyApp", "Create element failed", error) }
-                )
-            } else {
-                Amplify.API.mutate(
-                    ModelMutation.update(element),
-                    { response -> Log.i("MyAmplifyApp", "Updated element with id: " + response) },
-                    { error -> Log.e("MyAmplifyApp", "Update element failed", error) }
-                )
-            }
-        }catch(e:Exception){
-            Log.e("TTTTTTTTTTTTTTTTTTTTTt", "${e}")
-            Log.e("TTTTTTTTTTTTTTTTTTTTTt", "${arFragment.currentMarker}")
-            Log.e("TTTTTTTTTTTTTTTTTTTTTt", "${arFragment.currentMarker!!.canvases}")
-
+    fun initialize(){
+        lock.write {
+            mStrokes.removeAll { true }
         }
-
     }
 }
 
