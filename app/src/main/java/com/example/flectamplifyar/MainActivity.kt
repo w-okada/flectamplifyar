@@ -52,12 +52,25 @@ class MainActivity : AppCompatActivity(){
         amplify = AmplifyClient(this)
         amplify.dbChnageListener = object:AmplifyClient.DBChangeListener{
             override fun canvasAdded(canvas: Canvas) {
+                // not implemented
             }
 
             override fun elementAdded(element: Element) {
+                if(element.owner != user.uuid){
+                    Log.e(TAG, "other's element. ${element}")
+                    addOthersElements(listOf(element))
+                }else{
+                    Log.e(TAG, "my element. ${element}")
+                }
             }
 
             override fun elementUpdated(element: Element) {
+                if(element.owner != user.uuid){
+                    Log.e(TAG, "other's element. ${element}")
+                    addOthersElements(listOf(element))
+                }else{
+                    Log.e(TAG, "my element. ${element}")
+                }
             }
 
         }
@@ -96,6 +109,10 @@ class MainActivity : AppCompatActivity(){
                         if(canvas!=null){
                             marker.canvases.add(canvas)
                         }
+
+                        if(marker.canvases[0].elements.size>0){
+                            addOthersElements(marker.canvases[0].elements)
+                        }
                         onSuccess("setCurrent Marker ${id} success. Marker:${marker}, Canvas:${canvas}")
                     },
                     {message ->
@@ -130,7 +147,11 @@ class MainActivity : AppCompatActivity(){
 
     }
 
-
+    private fun addOthersElements(elements:List<Element>){
+        for(element in elements){
+            StrokeProvider.addElementFromDB(element.content)
+        }
+    }
 
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

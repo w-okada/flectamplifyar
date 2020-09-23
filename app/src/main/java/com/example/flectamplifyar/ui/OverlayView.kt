@@ -32,12 +32,7 @@ class OverlayView: View {
     @SuppressLint("MissingSuperCall")
     @Synchronized
     override fun onDraw(canvas: Canvas) {
-
-        Log.e("-------------","draw!!!!!!111")
-        Log.e("------------","add callback ${this}")
-
         for (callback in callbacks) {
-            Log.e("-------------","draw!!!!!!111---")
             callback.drawCallback(canvas)
         }
     }

@@ -5,6 +5,7 @@ import java.lang.reflect.Type
 import javax.vecmath.Vector3f
 
 data class DBObject(
+    val uuid:String,
     val type:TYPE,
     val textureType:TEXTURE_TYPE,
     val color: Int,

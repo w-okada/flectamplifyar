@@ -114,6 +114,7 @@ class AmplifyClient(context: Context){
                 { Log.i(TAG, "Subscription for create elements established") },
                 { onCreated ->
                     Log.i(TAG, "Element create subscription received: " + onCreated.data)
+                    dbChnageListener?.elementAdded(onCreated.data)
                 },
                 { onFailure ->
                     Log.e(TAG, "Subscription for create element failed", onFailure)
@@ -126,8 +127,9 @@ class AmplifyClient(context: Context){
             subscriptionForElementUpdate = Amplify.API.subscribe(
                 ModelSubscription.onUpdate(Element::class.java),
                 { Log.i(TAG, "Subscription for update elements established") },
-                { onCreated ->
-                    Log.i(TAG, "Element update subscription received: " + onCreated.data)
+                { onUpdated ->
+                    Log.i(TAG, "Element update subscription received: " + onUpdated.data)
+                    dbChnageListener?.elementUpdated(onUpdated.data)
                 },
                 { onFailure ->
                     Log.e(TAG, "Subscription for update element failed", onFailure)

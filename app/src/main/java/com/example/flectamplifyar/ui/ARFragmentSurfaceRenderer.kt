@@ -254,8 +254,49 @@ object ARFragmentSurfaceRenderer: RecordableSurfaceView.RendererCallbacks {
 
                 GLES.updateMatrix(mMatrix, aMatrix)
 
+                TextureLine.makeColorTexture(Color.parseColor("#FFFFFFFF"))
 
                 for (l in StrokeProvider.mStrokes){
+                    TextureLine.makeAStroke(l)
+                    TextureLine.draw(1f, 0f, 0f, 1f, 10.0f, 20f);//座標軸の描画本体
+                }
+            }
+
+            if(true){
+
+                //変換マトリックス
+                val mMatrix = FloatArray(16) //モデル変換マトリックス
+                GLES.useProgram()
+                val dummyFloat = FloatArray(1)
+                val dummyBuffer = BufferUtil.makeFloatBuffer(dummyFloat)
+                //シェーダのattribute属性の変数に値を設定していないと暴走するのでここでセットしておく。この位置でないといけない
+                GLES20.glVertexAttribPointer(GLES.positionHandle, 3, GLES20.GL_FLOAT, false, 0, dummyBuffer)
+                GLES20.glVertexAttribPointer(GLES.normalHandle, 3, GLES20.GL_FLOAT, false, 0, dummyBuffer)
+                GLES20.glVertexAttribPointer(GLES.texcoordHandle, 2, GLES20.GL_FLOAT, false, 0, dummyBuffer)
+
+                ShaderUtil.checkGLError("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAa", "before set texture0")
+
+                //無変換の記述はここ
+//                GLES.enableShading()
+//                GLES.disableTexture()
+                GLES.disableShading()
+                GLES.enableTexture()
+
+                GLES.setPMatrix(projmtx)
+                GLES.setCMatrix(viewmtx)
+
+                Matrix.setIdentityM(mMatrix, 0)
+                val aMatrix = FloatArray(16) //モデル変換マトリックス
+                Matrix.setIdentityM(aMatrix, 0)
+                anchor!!.pose.toMatrix(aMatrix, 0)
+
+                ShaderUtil.checkGLError("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAa", "before set texture1")
+
+                GLES.updateMatrix(mMatrix, aMatrix)
+
+                TextureLine.makeColorTexture(Color.parseColor("#ffffff00"))
+
+                for (l in StrokeProvider.mOthersStrokes){
                     TextureLine.makeAStroke(l)
                     TextureLine.draw(1f, 0f, 0f, 1f, 10.0f, 20f);//座標軸の描画本体
                 }

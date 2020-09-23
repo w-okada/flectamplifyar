@@ -217,6 +217,9 @@ class Stroke(var uuid:String) {
         return points
     }
 
+    fun clearPoints(){
+        points.removeAll{true}
+    }
     fun getLineWidth(): Float {
         return lineWidth
     }

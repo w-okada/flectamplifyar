@@ -21,7 +21,7 @@ open class TextureObject {
         val bitmapsize = size
         val bitmap = Bitmap.createBitmap(bitmapsize, bitmapsize, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
-        paint.color = Color.GREEN
+        paint.color = color
         canvas.drawRect(Rect(0, 0, bitmapsize, bitmapsize), paint)
         uploadTexture(bitmap)
         bitmap.recycle()

@@ -20,7 +20,9 @@ import kotlin.concurrent.write
 object StrokeProvider{
     lateinit var arFragment: ARFragment
     val mStrokes: MutableList<Stroke> = ArrayList()
+    val mOthersStrokes: MutableList<Stroke> = ArrayList()
     val lock = ReentrantReadWriteLock()
+    val othersLock = ReentrantReadWriteLock()
     val UPLOAD_INTERVAL = 10
     var newAddedPointNum = 0
 
@@ -55,9 +57,21 @@ object StrokeProvider{
 
             }
             MotionEvent.ACTION_MOVE ->{
-                lock.write {
-                    mStrokes[mStrokes.size - 1].add(newPoint)
+                // Down検出漏れ対策
+                if(mStrokes.size == 0){
+                    val stroke = Stroke(UUID.randomUUID().toString())
+                    stroke.localLine = true
+                    stroke.setLineWidth(0.006f)
+                    stroke.add(newPoint)
+                    lock.write{
+                        mStrokes.add(stroke)
+                    }
+                }else{
+                    lock.write {
+                        mStrokes[mStrokes.size - 1].add(newPoint)
+                    }
                 }
+
                 newAddedPointNum += 1
                 if(newAddedPointNum % UPLOAD_INTERVAL == 0){
                     thread {
@@ -81,10 +95,25 @@ object StrokeProvider{
         val dbobj:DBObject
         val json:String
         lock.read {
-            dbobj= DBObject(DBObject.TYPE.LINE, DBObject.TEXTURE_TYPE.COLOR, Color.RED, "", "", stroke.getPoints())
+            dbobj= DBObject(stroke.uuid, DBObject.TYPE.LINE, DBObject.TEXTURE_TYPE.COLOR, Color.RED, "", "", stroke.getPoints())
             json = Gson().toJson(dbobj)
         }
         arFragment.arOperationListener!!.updateDB(stroke.uuid, json, add, {}, {})
+    }
+
+    fun addElementFromDB(json:String){
+        val dbobj = Gson().fromJson(json, DBObject::class.java)
+        othersLock.write {
+            var stroke = mOthersStrokes.find{stroke ->  stroke.uuid == dbobj.uuid}
+            if(stroke == null){
+                stroke = Stroke(dbobj.uuid)
+            }
+            stroke.clearPoints()
+            for(f3 in dbobj.locations){
+                stroke.add(f3)
+            }
+            mOthersStrokes.add(stroke)
+        }
     }
 
     fun initialize(){
