@@ -1,11 +1,13 @@
 package com.example.flectamplifyar.model
 
+import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.util.Log
 import android.view.MotionEvent
 import com.amplifyframework.api.graphql.model.ModelMutation
 import com.amplifyframework.core.Amplify
 import com.amplifyframework.datastore.generated.model.Element
+import com.example.flectamplifyar.R
 import com.example.flectamplifyar.dbmodel.DBObject
 import com.example.flectamplifyar.ui.ARFragment
 import com.example.flectamplifyar.ui.ARFragmentSurfaceRenderer
@@ -147,7 +149,7 @@ object StrokeProvider{
         val dbobj:DBObject
         val json:String
         lock.read {
-            dbobj= DBObject(imageElement.uuid, DBObject.TYPE.RECT, DBObject.TEXTURE_TYPE.STRING, Color.RED, "", imageElement.resId, listOf(imageElement.position))
+            dbobj= DBObject(imageElement.uuid, DBObject.TYPE.RECT, DBObject.TEXTURE_TYPE.IMAGE, Color.RED, "", imageElement.resId, listOf(imageElement.position))
             json = Gson().toJson(dbobj)
         }
         arFragment.arOperationListener!!.updateDB(imageElement.uuid, json, true, {}, {})
@@ -158,15 +160,40 @@ object StrokeProvider{
     fun addElementFromDB(json:String){
         val dbobj = Gson().fromJson(json, DBObject::class.java)
         othersLock.write {
-            var stroke = mOthersStrokes.find{stroke ->  stroke.uuid == dbobj.uuid}
-            if(stroke == null){
-                stroke = Stroke(dbobj.uuid)
+            when(dbobj.type){
+                DBObject.TYPE.LINE -> {
+                    var stroke = mOthersStrokes.find{stroke ->  stroke.uuid == dbobj.uuid}
+                    if(stroke == null){
+                        stroke = Stroke(dbobj.uuid)
+                    }
+                    stroke.clearPoints()
+                    for(f3 in dbobj.locations){
+                        stroke.add(f3)
+                    }
+                    mOthersStrokes.add(stroke)
+                }
+                DBObject.TYPE.RECT ->{
+                    when(dbobj.textureType){
+                        DBObject.TEXTURE_TYPE.STRING -> {
+                            var element = textElements.find{e->e.uuid.equals(dbobj.uuid)}
+                            if(element == null){
+                                element = TextElement(dbobj.uuid, dbobj.text, dbobj.locations[0])
+                            }
+                            textElements.add(element)
+                        }
+                        DBObject.TEXTURE_TYPE.IMAGE ->{
+                            var element = imageElements.find{e->e.uuid.equals(dbobj.uuid)}
+                            if(element==null){
+                                val bm = BitmapFactory.decodeResource(arFragment.resources, dbobj.resId)
+                                element = ImageElement(dbobj.uuid, dbobj.resId, bm, dbobj.locations[0])
+                            }
+                            imageElements.add(element)
+                        }
+                        else -> {}
+                    }
+                }
+                else -> {}
             }
-            stroke.clearPoints()
-            for(f3 in dbobj.locations){
-                stroke.add(f3)
-            }
-            mOthersStrokes.add(stroke)
         }
     }
 
