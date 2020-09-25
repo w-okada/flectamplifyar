@@ -10,7 +10,7 @@ data class DBObject(
     val textureType:TEXTURE_TYPE,
     val color: Int,
     val text: String,
-    val imgPath: String,
+    val resId: Int,
     val locations :List<Vector3f>
 ) {
     enum class TYPE{

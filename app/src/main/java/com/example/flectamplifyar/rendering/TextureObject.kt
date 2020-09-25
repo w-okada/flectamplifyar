@@ -69,6 +69,9 @@ open class TextureObject {
         uploadTexture(bitmap)
         bitmap.recycle()
     }
+    fun makeImageTexture(bitmap: Bitmap) {
+        uploadTexture(bitmap)
+    }
 
     private fun uploadTexture(bitmap: Bitmap){
         // Texture アップロード

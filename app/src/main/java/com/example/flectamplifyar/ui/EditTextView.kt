@@ -24,7 +24,7 @@ class EditTextView: ConstraintLayout {
 
     override fun onViewAdded(view: View?) {
         edit_text_ok_button.setOnClickListener {
-            arFragment.textElementText = edit_texit_field.toString()
+            arFragment.textElementText = edit_texit_field.text.toString()
             edit_text_view.visibility = View.INVISIBLE
             hideKeyboard()
         }

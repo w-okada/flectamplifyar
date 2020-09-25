@@ -47,8 +47,6 @@ class MainActivity : AppCompatActivity(){
 
     var currentMarker: Marker? =null
 
-
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -78,7 +76,6 @@ class MainActivity : AppCompatActivity(){
                     Log.e(TAG, "my element. ${element}")
                 }
             }
-
         }
 
         (arFragment as ARFragment).arOperationListener = object:ARFragment.AROperationListener{

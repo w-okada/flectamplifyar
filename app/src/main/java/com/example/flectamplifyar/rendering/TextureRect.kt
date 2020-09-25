@@ -40,11 +40,12 @@ object TextureRect:TextureObject() {
         0f, 0f, 1f,
         0f, 0f, 1f
     )
+
     var textcoords = floatArrayOf(
-        1f, 1f, //右下 3
-        0f, 1f,  //左下 2
-        1f, 0f,  //右上 1
         0f, 0f,  //左上 0
+        1f, 0f,  //右上 1
+        0f, 1f,  //左下 2
+        1f, 1f, //右下 3
     )
 
 

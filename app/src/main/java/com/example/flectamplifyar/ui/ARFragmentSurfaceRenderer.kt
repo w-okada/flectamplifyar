@@ -141,12 +141,16 @@ object ARFragmentSurfaceRenderer: RecordableSurfaceView.RendererCallbacks {
         // the video background can be properly adjusted.
         DisplayRotationHelper.updateSessionIfNeeded(session)
         try {
+
+            // 背景テクスチャの設定
             session.setCameraTextureName(BackgroundRenderer.getTextureId())
 
+            // Frame 更新
             val frame = session.update()
             val camera = frame.camera
             val rotate = DisplayRotationHelper.getCameraSensorToDisplayRotation(session.cameraConfig.cameraId)
 
+            // 背景の描画
             BackgroundRenderer.draw(frame, DepthSettings.depthColorVisualizationEnabled())
 
             if (arFragment.imageCaptureView.visibility == View.VISIBLE){
@@ -157,13 +161,10 @@ object ARFragmentSurfaceRenderer: RecordableSurfaceView.RendererCallbacks {
             // アンカー作成
             val updatedAugmentedImages = frame.getUpdatedTrackables(AugmentedImage::class.java)
             for(i in updatedAugmentedImages){
-//                Log.e(TAG,"AUGMENTED IMAGE ${i.name}")
                 if(i.trackingState != TrackingState.TRACKING){
-//                    Log.e(TAG, "not tracking!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
                     continue
                 }
                 if(i.trackingMethod != AugmentedImage.TrackingMethod.FULL_TRACKING){
-//                    Log.e(TAG, "not !!FULL!! tracking!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
                     continue
                 }
                 if(anchor == null){
@@ -172,12 +173,8 @@ object ARFragmentSurfaceRenderer: RecordableSurfaceView.RendererCallbacks {
             }
 
             if(anchor == null){
-//                Log.e(TAG,"no Anchor!!!!!")
                 return
-            }else{
-//                Log.e(TAG,"Anchor!!!!! ${anchor!!.pose.tx()}, ${anchor!!.pose.ty()}, ${anchor!!.pose.tz()}")
             }
-
 
             // UV Transform
             if (frame.hasDisplayGeometryChanged() || calculateUVTransform) {
@@ -193,7 +190,7 @@ object ARFragmentSurfaceRenderer: RecordableSurfaceView.RendererCallbacks {
             }
 
             handleTap(frame, camera)
-//
+
             TrackingStateHelper.updateKeepScreenOnFlag(camera.trackingState)
 //            // If not tracking, don't draw 3D objects, show tracking failure reason instead.
 //            if (camera.trackingState == TrackingState.PAUSED) {
@@ -220,6 +217,83 @@ object ARFragmentSurfaceRenderer: RecordableSurfaceView.RendererCallbacks {
 //            }
 //
 
+
+
+
+            for(textElement in StrokeProvider.textElements){
+
+                //変換マトリックス
+                val mMatrix = FloatArray(16) //モデル変換マトリックス
+                GLES.useProgram()
+                val dummyFloat = FloatArray(1)
+                val dummyBuffer = BufferUtil.makeFloatBuffer(dummyFloat)
+                //シェーダのattribute属性の変数に値を設定していないと暴走するのでここでセットしておく。この位置でないといけない
+                GLES20.glVertexAttribPointer(GLES.positionHandle, 3, GLES20.GL_FLOAT, false, 0, dummyBuffer)
+                GLES20.glVertexAttribPointer(GLES.normalHandle, 3, GLES20.GL_FLOAT, false, 0, dummyBuffer)
+                GLES20.glVertexAttribPointer(GLES.texcoordHandle, 2, GLES20.GL_FLOAT, false, 0, dummyBuffer)
+
+
+                //無変換の記述はここ
+                GLES.disableShading()
+                GLES.enableTexture()
+                GLES.setPMatrix(projmtx)
+
+                GLES.setCMatrix(viewmtx)
+
+                Matrix.setIdentityM(mMatrix, 0)
+
+                val aMatrix = FloatArray(16) //モデル変換マトリックス
+//                Matrix.setIdentityM(aMatrix, 0)
+                anchor!!.pose.toMatrix(aMatrix, 0)
+
+                Matrix.translateM(mMatrix, 0, textElement.position.x, textElement.position.y, textElement.position.z)
+                Matrix.rotateM(mMatrix,0,90f,0f,1f,0f)
+                Matrix.scaleM(mMatrix, 0, 0.1f, 0.1f, -0.1f)
+
+                GLES.updateMatrix(mMatrix, aMatrix)
+                TextureRect.makeStringTexture(textElement.text, 20f, Color.parseColor("#FFFFFFFF"), Color.parseColor("#55FF0000"))
+                TextureRect.draw(0.5f, .1f, 1.0f, 0.5f, 0.0f)
+            }
+
+
+
+
+
+            for(imageElement in StrokeProvider.imageElements){
+
+                //変換マトリックス
+                val mMatrix = FloatArray(16) //モデル変換マトリックス
+                GLES.useProgram()
+                val dummyFloat = FloatArray(1)
+                val dummyBuffer = BufferUtil.makeFloatBuffer(dummyFloat)
+                //シェーダのattribute属性の変数に値を設定していないと暴走するのでここでセットしておく。この位置でないといけない
+                GLES20.glVertexAttribPointer(GLES.positionHandle, 3, GLES20.GL_FLOAT, false, 0, dummyBuffer)
+                GLES20.glVertexAttribPointer(GLES.normalHandle, 3, GLES20.GL_FLOAT, false, 0, dummyBuffer)
+                GLES20.glVertexAttribPointer(GLES.texcoordHandle, 2, GLES20.GL_FLOAT, false, 0, dummyBuffer)
+
+
+                //無変換の記述はここ
+                GLES.disableShading()
+                GLES.enableTexture()
+                GLES.setPMatrix(projmtx)
+
+                GLES.setCMatrix(viewmtx)
+
+                Matrix.setIdentityM(mMatrix, 0)
+
+                val aMatrix = FloatArray(16) //モデル変換マトリックス
+//                Matrix.setIdentityM(aMatrix, 0)
+                anchor!!.pose.toMatrix(aMatrix, 0)
+
+                Matrix.translateM(mMatrix, 0, imageElement.position.x, imageElement.position.y, imageElement.position.z)
+//                Matrix.translateM(mMatrix, 0, 0.1f, 0f, 0f)
+                Matrix.rotateM(mMatrix,0,90f,0f,1f,0f)
+                Matrix.scaleM(mMatrix, 0, 0.1f, 0.1f, -0.1f)
+
+                GLES.updateMatrix(mMatrix, aMatrix)
+                TextureRect.makeImageTexture(imageElement.bitmap)
+                TextureRect.draw(0.5f, .1f, 1.0f, 0.5f, 0.0f)
+            }
 
 
             if(true){
@@ -301,83 +375,6 @@ object ARFragmentSurfaceRenderer: RecordableSurfaceView.RendererCallbacks {
                     TextureLine.draw(1f, 0f, 0f, 1f, 10.0f, 20f);//座標軸の描画本体
                 }
             }
-//
-//
-            for(l in StrokeProvider.mStrokes){
-
-                //変換マトリックス
-                val mMatrix = FloatArray(16) //モデル変換マトリックス
-                GLES.useProgram()
-                val dummyFloat = FloatArray(1)
-                val dummyBuffer = BufferUtil.makeFloatBuffer(dummyFloat)
-                //シェーダのattribute属性の変数に値を設定していないと暴走するのでここでセットしておく。この位置でないといけない
-                GLES20.glVertexAttribPointer(GLES.positionHandle, 3, GLES20.GL_FLOAT, false, 0, dummyBuffer)
-                GLES20.glVertexAttribPointer(GLES.normalHandle, 3, GLES20.GL_FLOAT, false, 0, dummyBuffer)
-                GLES20.glVertexAttribPointer(GLES.texcoordHandle, 2, GLES20.GL_FLOAT, false, 0, dummyBuffer)
-
-                ShaderUtil.checkGLError("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAa", "before set texture0")
-
-                //無変換の記述はここ
-                GLES.disableShading()
-                GLES.enableTexture()
-                GLES.setPMatrix(projmtx)
-
-                GLES.setCMatrix(viewmtx)
-
-                Matrix.setIdentityM(mMatrix, 0)
-
-                val aMatrix = FloatArray(16) //モデル変換マトリックス
-//                Matrix.setIdentityM(aMatrix, 0)
-                anchor!!.pose.toMatrix(aMatrix, 0)
-
-                Matrix.translateM(mMatrix, 0, l.getPoints()[0].x, l.getPoints()[0].y, l.getPoints()[0].z)
-//                Matrix.translateM(mMatrix, 0, 0.1f, 0f, 0f)
-                Matrix.scaleM(mMatrix, 0, 0.1f, 0.1f, -0.1f)
-                ShaderUtil.checkGLError("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAa", "before set texture1")
-
-                GLES.updateMatrix(mMatrix, aMatrix)
-                TextureRect.draw(0.5f, .1f, 1.0f, 0.5f, 0.0f)
-            }
-
-            for(l in StrokeProvider.mStrokes){
-
-                //変換マトリックス
-                val mMatrix = FloatArray(16) //モデル変換マトリックス
-                GLES.useProgram()
-                val dummyFloat = FloatArray(1)
-                val dummyBuffer = BufferUtil.makeFloatBuffer(dummyFloat)
-                //シェーダのattribute属性の変数に値を設定していないと暴走するのでここでセットしておく。この位置でないといけない
-                GLES20.glVertexAttribPointer(GLES.positionHandle, 3, GLES20.GL_FLOAT, false, 0, dummyBuffer)
-                GLES20.glVertexAttribPointer(GLES.normalHandle, 3, GLES20.GL_FLOAT, false, 0, dummyBuffer)
-                GLES20.glVertexAttribPointer(GLES.texcoordHandle, 2, GLES20.GL_FLOAT, false, 0, dummyBuffer)
-
-                ShaderUtil.checkGLError("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAa", "before set texture0")
-
-                //無変換の記述はここ
-//                GLES.enableShading()
-//                GLES.disableTexture()
-                GLES.disableShading()
-                GLES.enableTexture()
-                GLES.setPMatrix(projmtx)
-
-                GLES.setCMatrix(viewmtx)
-
-                //大きい地球の最前面にHelloを表示
-                Matrix.setIdentityM(mMatrix, 0)
-
-                val aMatrix = FloatArray(16) //モデル変換マトリックス
-                Matrix.setIdentityM(aMatrix, 0)
-//                anchor!!.pose.toMatrix(aMatrix, 0)
-
-//                Matrix.translateM(mMatrix, 0, l.getPoints()[0].x, l.getPoints()[0].y, l.getPoints()[0].z)
-                Matrix.translateM(mMatrix, 0, 0.1f, 0.0f, 0.1f)
-                Matrix.scaleM(mMatrix, 0, 0.05f, 0.05f, 0.05f);
-                ShaderUtil.checkGLError("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAa", "before set texture1")
-
-                GLES.updateMatrix(mMatrix, aMatrix)
-                TextureSphere.draw(1f, 1f, 1f, 1f, 5.0f);
-            }
-
 
             for(i in updatedAugmentedImages){
 //                if(i.trackingState != TrackingState.TRACKING){
@@ -419,8 +416,6 @@ object ARFragmentSurfaceRenderer: RecordableSurfaceView.RendererCallbacks {
 //                TextureTriangl.draw(0.5f, .1f, 1.0f, 0.5f, 0.0f)
 //                TextureCube.draw(0.5f, .1f, 1.0f, 0.5f, 0.0f)
                 TextureCube.draw(0.5f, .1f, 1.0f, 0.5f, 0.0f)
-
-
 
             }
 

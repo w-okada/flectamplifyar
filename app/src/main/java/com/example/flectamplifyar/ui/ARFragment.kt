@@ -88,6 +88,7 @@ class ARFragment(): Fragment(){
 
     var textElementText:String=""
     var imageElementBitmap:Bitmap? = null
+    var imageElementBitmapId:Int = 0
 
     var session: Session? = null
 

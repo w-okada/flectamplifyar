@@ -30,6 +30,7 @@ class SelectImageView:ConstraintLayout{
         inflater.inflate(R.layout.select_image_view, this, true)
         select_image_grid_view.setOnItemClickListener{ adapterView, view, i, l ->
             arFragment.imageElementBitmap = (adapterView.adapter.getItem(i) as SelectImageGirdItemState).bm
+            arFragment.imageElementBitmapId = (adapterView.adapter.getItem(i) as SelectImageGirdItemState).resId
             select_image_view.visibility = View.INVISIBLE
         }
     }
@@ -38,8 +39,8 @@ class SelectImageView:ConstraintLayout{
 
     fun generateGird() {
         val arraylist = arrayListOf<SelectImageGirdItemState>(
-            SelectImageGirdItemState(BitmapFactory.decodeResource(arFragment.resources, R.drawable.flect_logo_150x150)),
-            SelectImageGirdItemState(BitmapFactory.decodeResource(arFragment.resources, R.drawable.kurokawasan_150x150)),
+            SelectImageGirdItemState(BitmapFactory.decodeResource(arFragment.resources, R.drawable.flect_logo_150x150), R.drawable.flect_logo_150x150),
+            SelectImageGirdItemState(BitmapFactory.decodeResource(arFragment.resources, R.drawable.kurokawasan_150x150), R.drawable.kurokawasan_150x150) ,
         )
         val adapter = SelectImageGridAdapter(context, 0, arraylist)
         select_image_grid_view.adapter = adapter
@@ -47,7 +48,7 @@ class SelectImageView:ConstraintLayout{
     }
 }
 
-data class SelectImageGirdItemState(val bm: Bitmap?=null)
+data class SelectImageGirdItemState(val bm: Bitmap?=null, val resId:Int)
 data class SelectImageGirdItemViewHolder(var imageView: ImageView, var state:SelectImageGirdItemState)
 
 class SelectImageGridAdapter(private val mContext: Context, resource: Int, private val listState: ArrayList<SelectImageGirdItemState>) : BaseAdapter() {
