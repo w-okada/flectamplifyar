@@ -6,6 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/browser_actions_bg_grey"
+    android:padding="1dp"
     android:visibility="visible">
 
 
@@ -15,6 +16,90 @@
         android:layout_height="match_parent"
         android:layout_gravity="top" />
 
+
+    <ImageButton
+        android:id="@+id/main_line_button"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_marginStart="8dp"
+        android:adjustViewBounds="true"
+        android:padding="2dp"
+        android:scaleType="fitCenter"
+        app:layout_constraintBottom_toBottomOf="@+id/main_trash_button"
+        app:layout_constraintStart_toEndOf="@+id/main_trash_button"
+        app:srcCompat="@drawable/line_150x150" />
+
+    <Button
+        android:id="@+id/main_rec_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp"
+        android:text="rec"
+        android:stateListAnimator="@null"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <ImageButton
+        android:id="@+id/main_image_button"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_marginStart="8dp"
+        android:adjustViewBounds="true"
+        android:padding="2dp"
+        android:scaleType="fitCenter"
+        app:layout_constraintBottom_toBottomOf="@+id/main_line_button"
+        app:layout_constraintStart_toEndOf="@+id/main_line_button"
+        app:srcCompat="@drawable/image_150x150" />
+
+    <ImageButton
+        android:id="@+id/main_trash_button"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginBottom="8dp"
+        android:adjustViewBounds="true"
+        android:padding="2dp"
+        android:scaleType="fitCenter"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:srcCompat="@drawable/trash_150x150" />
+
+    <ImageButton
+        android:id="@+id/main_text_button"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_marginStart="8dp"
+        android:adjustViewBounds="true"
+        android:padding="2dp"
+        android:scaleType="fitCenter"
+        app:layout_constraintBottom_toBottomOf="@+id/main_image_button"
+        app:layout_constraintStart_toEndOf="@+id/main_image_button"
+        app:srcCompat="@drawable/text_150x150" />
+
+    <ImageView
+        android:id="@+id/main_marker_view"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:background="#FF8A80"
+        android:padding="1dp"
+        android:visibility="invisible"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/main_marker_view_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="click to rescan"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        android:visibility="invisible"
+        app:layout_constraintBottom_toBottomOf="@+id/main_marker_view"
+        app:layout_constraintEnd_toEndOf="@+id/main_marker_view"
+        app:layout_constraintStart_toStartOf="@+id/main_marker_view" />
 
     <com.example.flectamplifyar.ui.MenuController
         android:id="@+id/menuController"
@@ -32,7 +117,9 @@
         app:layout_constraintBottom_toBottomOf="@+id/rSurfaceView"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent">
+
+    </com.example.flectamplifyar.ui.ImageCaptureView>
 
 
     <com.example.flectamplifyar.ui.LoadMarkerView
@@ -42,7 +129,27 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+    </com.example.flectamplifyar.ui.LoadMarkerView>
+
+    <com.example.flectamplifyar.ui.EditTextView
+        android:id="@+id/edit_text_view2"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <com.example.flectamplifyar.ui.SelectImageView
+        android:id="@+id/select_image_view2"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
+.
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -15,6 +15,7 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import com.amplifyframework.core.Amplify
 import com.example.flectamplifyar.App
 import com.example.flectamplifyar.R
+import kotlinx.android.synthetic.main.arfragment.*
 import kotlinx.android.synthetic.main.load_marker_view.view.*
 import java.io.File
 
@@ -41,6 +42,8 @@ class LoadMarkerView: ConstraintLayout {
             loadMarkerSelectButton.visibility = View.VISIBLE
             selectedLoadMarkerSpinnerItemState = state
         }
+
+
         loadMarkerSelectButton.setOnClickListener{
             arFragment!!.arOperationListener!!.setCurrentMarker(
                 selectedLoadMarkerSpinnerItemState!!.id,
@@ -53,6 +56,7 @@ class LoadMarkerView: ConstraintLayout {
             )
             arFragment!!.refreshImageDatabase(selectedLoadMarkerSpinnerItemState!!.bm!!)
             loadMarkerView.visibility = View.INVISIBLE
+            arFragment!!.main_marker_view.setImageBitmap(selectedLoadMarkerSpinnerItemState!!.bm!!)
         }
 
         loadMarkerBackButton.setOnClickListener{

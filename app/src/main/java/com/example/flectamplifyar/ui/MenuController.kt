@@ -72,6 +72,19 @@ class MenuController: ConstraintLayout {
         }
 
 
+
+        // showMarkerSwithのトグル
+        showMarkerSwith.setOnCheckedChangeListener { compoundButton, b ->
+            if(b==true){
+                arFragment.main_marker_view.visibility = View.VISIBLE
+                arFragment.main_marker_view_text.visibility = View.VISIBLE
+
+            }else{
+                arFragment.main_marker_view.visibility = View.INVISIBLE
+                arFragment.main_marker_view_text.visibility = View.INVISIBLE
+            }
+        }
+
         // サインアウトボタンがクリックされたときの処理
         sighOutButton.setOnClickListener{
             Amplify.Auth.signOut(

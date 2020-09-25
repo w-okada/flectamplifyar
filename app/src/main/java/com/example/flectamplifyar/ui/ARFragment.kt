@@ -51,9 +51,11 @@ import kotlinx.android.synthetic.main.arfragment.*
 import kotlinx.android.synthetic.main.arfragment.view.*
 import kotlinx.android.synthetic.main.arfragment_menu.*
 import kotlinx.android.synthetic.main.arfragment_menu.view.*
+import kotlinx.android.synthetic.main.edit_text_view.*
 import kotlinx.android.synthetic.main.image_capture_view.*
 import kotlinx.android.synthetic.main.image_capture_view.view.*
 import kotlinx.android.synthetic.main.load_marker_view.view.*
+import kotlinx.android.synthetic.main.select_image_view.*
 import java.io.File
 import java.util.*
 import javax.vecmath.Vector3f
@@ -65,14 +67,27 @@ class ARFragment(): Fragment(){
         val MARKER_HEIGHT = 500
     }
 
+    enum class Mode{
+        LINE,
+        TEXT,
+        IMAGE,
+    }
+
+    var mode = Mode.LINE
+
     interface AROperationListener{
         fun uploadMarker(bitmap:Bitmap, filename:String, displayName:String, onSuccess:((uploadId:String, score:Int) -> Unit), onError:((message:String) -> Unit))
         fun setCurrentMarker(id:String, onSuccess:((message:String) -> Unit), onError:((message:String) -> Unit))
         fun getMarkers(onSuccess:((markers:List<Marker>) -> Unit), onError:((message:String) -> Unit))
         fun updateDB(uuid:String, json:String, add:Boolean,  onSuccess:((message:String) -> Unit), onError:((message:String) -> Unit))
+        fun clearMyElements(onSuccess:((message:String) -> Unit), onError:((message:String) -> Unit))
     }
 
     var arOperationListener:AROperationListener? = null
+    private var currentMarkerBitmap:Bitmap? = null
+
+    var textElementText:String=""
+    var imageElementBitmap:Bitmap? = null
 
     var session: Session? = null
 
@@ -115,6 +130,51 @@ class ARFragment(): Fragment(){
         imageCaptureView2.arFragment=this
         // LoadMarkerViewSetup
         loadMarkerView2.arFragment = this
+
+        edit_text_view2.arFragment = this
+        select_image_view2.arFragment = this
+        select_image_view2.generateGird()
+
+
+        main_marker_view.setOnClickListener {
+            if(currentMarkerBitmap != null){
+                refreshImageDatabase(currentMarkerBitmap!!, true)
+            }
+        }
+
+        main_trash_button.setOnClickListener{
+            if(currentMarkerBitmap != null){
+                StrokeProvider.initialize()
+                arOperationListener!!.clearMyElements(
+                    {},{}
+                )
+            }
+        }
+
+        main_line_button.setOnClickListener {
+            mode = Mode.LINE
+            main_line_button.setBackgroundColor(Color.parseColor("#ffff0000"))
+            main_image_button.setBackgroundColor(Color.parseColor("#00000000"))
+            main_text_button.setBackgroundColor(Color.parseColor("#00000000"))
+        }
+        main_image_button.setOnClickListener {
+            select_image_view.visibility = View.VISIBLE
+            mode = Mode.IMAGE
+            main_line_button.setBackgroundColor(Color.parseColor("#00000000"))
+            main_image_button.setBackgroundColor(Color.parseColor("#ffff0000"))
+            main_text_button.setBackgroundColor(Color.parseColor("#00000000"))
+        }
+
+        main_text_button.setOnClickListener {
+            edit_text_view.visibility = View.VISIBLE
+            mode = Mode.TEXT
+            main_line_button.setBackgroundColor(Color.parseColor("#00000000"))
+            main_image_button.setBackgroundColor(Color.parseColor("#00000000"))
+            main_text_button.setBackgroundColor(Color.parseColor("#ffff0000"))
+        }
+
+
+
     }
 
 
@@ -230,15 +290,20 @@ class ARFragment(): Fragment(){
         }
     }
 
-    fun refreshImageDatabase(bitmap:Bitmap){
+    fun refreshImageDatabase(bitmap:Bitmap, keepPreviousElement:Boolean = false){
         Log.e(TAG, "setBM ${bitmap}")
+        currentMarkerBitmap = bitmap
         val config = session!!.getConfig()
         imageDatabase = AugmentedImageDatabase(session)
         imageDatabase.addImage("mmm_${session!!.config.augmentedImageDatabase.numImages}",bitmap, 0.1f)
         config.augmentedImageDatabase = imageDatabase
         session!!.configure(config)
         ARFragmentSurfaceRenderer.anchor = null
-        StrokeProvider.initialize()
+        if(keepPreviousElement == true){
+
+        }else{
+            StrokeProvider.initialize()
+        }
     }
 
 

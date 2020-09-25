@@ -289,4 +289,28 @@ class AmplifyClient(context: Context){
         }
     }
 
+    fun clearMyElement(user:UserProfile, elements:List<Element>,
+                      onSuccess:(message: String) -> Unit, onError: (message: String) -> Unit){
+        try {
+            elements.filter{
+                Log.e(TAG,"clear .... ${it.owner} ${user.uuid}")
+                it.owner.equals(user.uuid)
+            }.forEach{element ->
+                Amplify.API.mutate(
+                    ModelMutation.delete(element),
+                    { response ->
+                        onSuccess("Delete element ${element}")
+                    },
+                    { error ->
+                        onError("Delete element failed ${error} ${element}")
+                    }
+                )
+            }
+            onSuccess("Clear my elements ")
+        }catch(e:Exception){
+            onError( "Update element failed ${e}")
+        }
+    }
+
+
 }

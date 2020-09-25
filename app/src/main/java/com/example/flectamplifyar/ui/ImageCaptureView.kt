@@ -12,6 +12,7 @@ import android.view.View
 import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
 import com.example.flectamplifyar.R
+import kotlinx.android.synthetic.main.arfragment.*
 import kotlinx.android.synthetic.main.arfragment.view.*
 import kotlinx.android.synthetic.main.image_capture_view.view.*
 import java.util.*
@@ -91,12 +92,14 @@ class ImageCaptureView: ConstraintLayout {
             cancelMarkerButton.visibility = View.VISIBLE
 
         }
-        // Exitボタンがクリックされたときの処理
+
+        // Exitボタンがクリックされたときの処理(戻る)
         exitCaptureMarkerButton.setOnClickListener{
             markerCaptureConfirmLayout.visibility = View.INVISIBLE
             imageCaptureView.visibility = View.INVISIBLE
             waitUploadingExitButton.visibility = View.INVISIBLE
             waitUploadingStatusText.visibility = View.INVISIBLE
+
         }
 
         // Cancelボタンがクリックされたときの処理
@@ -136,11 +139,15 @@ class ImageCaptureView: ConstraintLayout {
             waitUploadingProgressBar.visibility = View.VISIBLE
         }
 
+
+
+        // Exitボタンがクリックされたときの処理(マーカーを確定)
         waitUploadingExitButton.setOnClickListener{
             markerCaptureConfirmLayout.visibility = View.INVISIBLE
             imageCaptureView.visibility = View.INVISIBLE
             waitUploadingExitButton.visibility = View.INVISIBLE
             waitUploadingStatusText.visibility = View.INVISIBLE
+            arFragment.main_marker_view.setImageBitmap(this.bitmap)
             if(uploadSucceeded){
                 uploadSucceeded = false
                 arFragment.arOperationListener!!.setCurrentMarker(uploadId,
@@ -153,6 +160,7 @@ class ImageCaptureView: ConstraintLayout {
                     }
                 )
             }
+
         }
     }
 
