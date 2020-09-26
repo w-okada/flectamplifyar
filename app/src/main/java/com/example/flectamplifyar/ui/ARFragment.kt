@@ -3,10 +3,13 @@ package com.example.flectamplifyar.ui
 import android.content.Context
 import android.content.Intent
 import android.graphics.*
+import android.graphics.Point
+import android.icu.util.Calendar
 import android.media.ThumbnailUtils
 import android.opengl.GLSurfaceView
 import android.os.Bundle
 import android.os.Handler
+import android.os.SystemClock
 import android.util.AttributeSet
 import android.util.Log
 import android.view.LayoutInflater
@@ -19,6 +22,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.setFragmentResultListener
 import androidx.navigation.Navigation.findNavController
 import androidx.navigation.fragment.findNavController
+import com.amazonaws.mobile.auth.core.internal.util.ThreadUtils.runOnUiThread
 import com.amplifyframework.AmplifyException
 import com.amplifyframework.api.ApiOperation
 import com.amplifyframework.api.aws.AWSApiPlugin
@@ -57,6 +61,7 @@ import kotlinx.android.synthetic.main.image_capture_view.view.*
 import kotlinx.android.synthetic.main.load_marker_view.view.*
 import kotlinx.android.synthetic.main.select_image_view.*
 import java.io.File
+import java.io.IOException
 import java.util.*
 import javax.vecmath.Vector3f
 
@@ -108,6 +113,7 @@ class ARFragment(): Fragment(){
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle? ): View {
         Log.e(TAG, "onCreateView... ")
+        setupTimer()
         return inflater.inflate(R.layout.arfragment, container, false)
     }
 
@@ -172,6 +178,20 @@ class ARFragment(): Fragment(){
             main_line_button.setBackgroundColor(Color.parseColor("#00000000"))
             main_image_button.setBackgroundColor(Color.parseColor("#00000000"))
             main_text_button.setBackgroundColor(Color.parseColor("#ffff0000"))
+        }
+
+
+        main_rec_button.setOnClickListener{
+            mRecordStartTime = SystemClock.elapsedRealtime()
+            val startSuccessful = rSurfaceView.startRecording()
+            mHandler.postDelayed(mRecordingRunnable, mTick)
+            mCounterRunning = true
+            if (startSuccessful) {
+                Log.v(TAG, "Recording Started")
+            } else {
+                Log.v(TAG, "Recording Started failed ")
+                prepareForRecording()
+            }
         }
 
 
@@ -347,6 +367,78 @@ class ARFragment(): Fragment(){
 //
 //    }
 
+    lateinit private var mRecordingRunnable: Runnable
+    private var mRecordStartTime: Long = -1
+    private var mHandler = Handler()
+    private var mCounterRunning = false
+    private var mTick = 20L
+    private val MAX_DURATION = 1000 * 20
 
+    private fun setupTimer(){
+        mRecordingRunnable = Runnable {
+            val counterDuration = getCurrentCounterDuration()
+            Log.e(TAG, "Recorder Tick 1 ")
+            if (counterDuration >= MAX_DURATION) {
+                Log.e(TAG, "Recorder Tick fin")
+                mCounterRunning = false
+                rSurfaceView.stopRecording()
+                prepareForRecording()
+                main_rec_button.text="REC"
+                main_rec_button.isClickable = true
+            } else if (mCounterRunning) {
+                Log.e(TAG, "Recorder Tick continue")
+                mHandler.postDelayed(mRecordingRunnable, mTick)
+                runOnUiThread {
+                    main_rec_button.isClickable = false
+                    main_rec_button.text="${counterDuration} / ${MAX_DURATION}"
+                }
+            }
+            Log.e(TAG, "Recorder Tick 2 ")
+        }
+    }
+    private fun getCurrentCounterDuration(): Long {
+        return if (mRecordStartTime > 0) {
+            SystemClock.elapsedRealtime() - mRecordStartTime
+        } else {
+            0
+        }
+    }
 
+    private var mOutputFile: File? = null
+    fun prepareForRecording() {
+        Log.d(TAG, "prepareForRecording: ")
+        try {
+            mOutputFile = createVideoOutputFile()
+            val size = Point()
+            requireActivity().windowManager.defaultDisplay.getRealSize(size)
+            rSurfaceView.initRecorder(mOutputFile, size.x, size.y, null, null)
+
+            // on some devices, this will not be on the UI thread when called from onSurfaceCreated
+            runOnUiThread {
+//                mRecordButton!!.isEnabled = true
+            }
+        } catch (ioex: IOException) {
+            Log.e(TAG, "Couldn't setup recording", ioex)
+        }
+    }
+
+    private fun createVideoOutputFile(): File {
+        val tempFile: File
+        val dir = File(requireActivity().cacheDir, "captures")
+        if (!dir.exists()) {
+            dir.mkdirs()
+        }
+        val c = Calendar.getInstance()
+        val filename = ("JustALine_" +
+                c[Calendar.YEAR] + "-" +
+                (c[Calendar.MONTH] + 1) + "-" +
+                c[Calendar.DAY_OF_MONTH]
+                + "_" +
+                c[Calendar.HOUR_OF_DAY] +
+                c[Calendar.MINUTE] +
+                c[Calendar.SECOND])
+        tempFile = File(dir, "$filename.mp4")
+        Log.e(TAG,"file:::::::::::::::::${tempFile.absolutePath}")
+        return tempFile
+    }
 }

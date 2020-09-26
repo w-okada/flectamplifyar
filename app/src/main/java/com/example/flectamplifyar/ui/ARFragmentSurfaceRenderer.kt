@@ -43,6 +43,7 @@ object ARFragmentSurfaceRenderer: RecordableSurfaceView.RendererCallbacks {
     }
     override fun onSurfaceCreated() {
 
+        arFragment.prepareForRecording()
     }
 
     override fun onSurfaceChanged(width: Int, height: Int) {
